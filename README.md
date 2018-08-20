@@ -15,5 +15,6 @@ Options:
   --token TEXT    Resin.io auth token
   --release TEXT  Commit hash of the release in resin to set application
   --canary TEXT   Commit hash of the release in resin for canary
+  --releases      Show last releases
   --help          Show this message and exit.
 ```
