@@ -3,7 +3,7 @@ This tool is to set release canary in resin.io
 
 ## Installation
 ```
-pip install https://github.com/mobilityhouse/resin-release-tool
+pip install git+ssh://github.com/mobilityhouse/resin-release-tool.git
 ```
 
 ## Usage
