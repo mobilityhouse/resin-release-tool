@@ -19,6 +19,14 @@ class ResinReleaser:
             if tag['tag_key'] == 'CANARY']
         return canaries
 
+    def get_releases(self):
+        releases = self.models.release.get_all_by_application(self.app_id)
+        releases = [
+            release for release in releases if release['status'] == 'success']
+        print('Latest 10 releases:')
+        for release in releases[:10]:
+            print(release['end_timestamp'], release['commit'])
+
     def disable_rolling(self):
         self.models.application.disable_rolling_updates(self.app_id)
 
@@ -87,7 +95,7 @@ class ResinReleaser:
         self.disable_rolling()
 
         if old_canaries:
-            print('Reseting all canarier`')
+            print('Reseting all canaries')
             # Reset old canaries to app release
             for old_canary in old_canaries.values():
                 print(old_canary['device_name'])

@@ -9,9 +9,13 @@ from .releaser import ResinReleaser
               help='Commit hash of the release in resin to set application')
 @click.option('--canary', prompt='Canary commit hash',
               help='Commit hash of the release in resin for canary')
-def main(app, token, release, canary):
+@click.option('--releases', is_flag=True, help='Show last releases')
+def main(app, token, release, canary, releases):
     resin_releaser = ResinReleaser(token, app, release, canary)
-    resin_releaser.set_release()
+    if releases:
+        resin_releaser.get_releases()
+    else:
+        resin_releaser.set_release()
 
 
 if __name__ == '__main__':
