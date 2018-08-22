@@ -9,8 +9,6 @@ class ResinReleaser:
         self.models = self.resin.models
 
         self.app_id = app_id
-        self.release = release
-        self.canary = canary
 
     def get_canaries(self):
         tags = self.models.tag.device.get_all_by_application(self.app_id)
@@ -68,7 +66,7 @@ class ResinReleaser:
             'rest': rest,
         }
 
-    def set_release(self):
+    def set_release(self, release_hash, canary_hash=None):
         devices = self.get_devices_by_status()
 
         rest = devices['rest']
@@ -76,7 +74,7 @@ class ResinReleaser:
         old_canaries = devices['old_canaries']
 
         if canaries:
-            print('Canaries - Setting to commit %s' % self.canary)
+            print('Canaries - Setting to commit %s' % canary_hash)
             print(', '.join([c['device_name'] for c in canaries.values()]))
             print()
 
@@ -106,8 +104,8 @@ class ResinReleaser:
             # Set canaries to current canary release
             for canary in canaries.values():
                 print(canary['device_name'])
-                self.set_device_to_release(canary, self.canary)
+                self.set_device_to_release(canary, canary_hash)
 
         # We do this here to trigger update in all devices
-        print('Setting up current release to: %s' % self.release)
-        self.set_app_to_release(self.release)
+        print('Setting up current release to: %s' % release_hash)
+        self.set_app_to_release(release_hash)

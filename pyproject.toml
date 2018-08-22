@@ -5,7 +5,7 @@ description = "Release tool to have canary in resin.io"
 authors = ["roger <rogerduran@gmail.com>"]
 
 [tool.poetry.scripts]
-resin-release-tool = 'resin_release_tool.cli:main'
+resin-release-tool = 'resin_release_tool.cli:cli'
 
 [tool.poetry.dependencies]
 python = "^3.5"
