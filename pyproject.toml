@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "resin-release-tool"
+version = "0.1.0"
+description = "Release tool to have canary in resin.io"
+authors = ["roger <rogerduran@gmail.com>"]
+
+[tool.poetry.scripts]
+resin-release-tool = 'resin_release_tool.cli:main'
+
+[tool.poetry.dependencies]
+python = "^3.5"
+resin-sdk = "^5.0"
+click = "^6.7"
+
+[tool.poetry.dev-dependencies]
