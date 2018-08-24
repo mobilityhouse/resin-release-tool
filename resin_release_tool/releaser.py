@@ -10,6 +10,9 @@ class ResinReleaser:
 
         self.app_id = app_id
 
+    def get_info(self):
+        return self.models.application.get_by_id(self.app_id)
+
     def get_canaries(self):
         tags = self.models.tag.device.get_all_by_application(self.app_id)
         canaries = [

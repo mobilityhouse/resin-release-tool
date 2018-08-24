@@ -21,6 +21,24 @@ def cli(ctx, app, token):
 
 @cli.command()
 @pass_releaser
+def info(releaser):
+    """Information of the application"""
+
+    info = releaser.get_info()
+    string = "Name: {name}\n"
+    string += "Device Type: {device_type}\n"
+    string += "In Commit: {commit}\n"
+    string += "Rolling enabled: {rolling_enabled}"
+    string = string.format(
+      name=info['app_name'],
+      commit=info['commit'],
+      device_type=info['device_type'],
+      rolling_enabled=info['should_track_latest_release'])
+    click.echo(string)
+
+
+@cli.command()
+@pass_releaser
 def disable_rolling(releaser):
     """Disables rolling releases in the application"""
     releaser.disable_rolling()
@@ -39,8 +57,16 @@ def enable_rolling(releaser):
 @click.argument('release_commit')
 @click.argument('canary_commit')
 @pass_releaser
-def release(releaser, release_commit, canary_commit):
+@click.pass_context
+def release(ctx, releaser, release_commit, canary_commit):
     """Sets release and canary commits"""
+    ctx.invoke(info)
+    confirm_text = 'Are you sure you want to set '\
+        'release/canary to: "%s" "%s"?' % (
+            release_commit, canary_commit)
+    if not click.confirm(confirm_text):
+        click.echo('Cancelled!')
+        exit(1)
     releaser.set_release(release_commit, canary_commit)
 
 
