@@ -25,16 +25,13 @@ def info(releaser):
     """Information of the application"""
 
     info = releaser.get_info()
-    string = "Name: {name}\n"
-    string += "Device Type: {device_type}\n"
-    string += "In Commit: {commit}\n"
-    string += "Rolling enabled: {rolling_enabled}"
-    string = string.format(
-      name=info['app_name'],
-      commit=info['commit'],
-      device_type=info['device_type'],
-      rolling_enabled=info['should_track_latest_release'])
-    click.echo(string)
+    rolling = info['should_track_latest_release'] and 'Yes' or 'No'
+    info_list = [
+        f"App Name: {info['app_name']}",
+        f"Device Type: {info['device_type']}",
+        f"In Commit: {info['commit']}",
+        f"Rolling enabled: {rolling}"]
+    click.echo('\n'.join(info_list))
 
 
 @cli.command()
