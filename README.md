@@ -11,6 +11,8 @@ etc..
 ```
 
 ## Installation(pre built)
+TODO: we need to add circleci and create pypi/github releases
+
 ```
 pip install https://github.com/mobilityhouse/resin-release-tool/releases/download/0.1.0/resin_release_tool-0.1.0-py3-none-any.whl
 ```
