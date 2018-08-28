@@ -1,8 +1,9 @@
+from functools import lru_cache
 from resin import Resin
 
 
 class ResinReleaser:
-    def __init__(self, token, app_id, release=None, canary=None):
+    def __init__(self, token, app_id):
         self.resin = Resin()
         self.resin.auth.login_with_token(token)
 
@@ -20,13 +21,16 @@ class ResinReleaser:
             if tag['tag_key'] == 'CANARY']
         return canaries
 
+    @lru_cache()
     def get_releases(self):
         releases = self.models.release.get_all_by_application(self.app_id)
-        releases = [
-            release for release in releases if release['status'] == 'success']
-        print('Latest 10 releases:')
-        for release in releases[:10]:
-            print(release['end_timestamp'], release['commit'])
+        return {
+            release['commit']: release
+            for release in releases
+            if release['status'] == 'success'}
+
+    def is_valid_commit(self, commit):
+        return commit in self.get_releases()
 
     def disable_rolling(self):
         self.models.application.disable_rolling_updates(self.app_id)
@@ -45,6 +49,7 @@ class ResinReleaser:
         devices = self.models.device.get_all_by_application_id(self.app_id)
         return {d['id']: d for d in devices}
 
+    @lru_cache()
     def get_devices_by_status(self):
         """Group devices by status: canary, old_canary, rest
         """
@@ -72,24 +77,8 @@ class ResinReleaser:
     def set_release(self, release_hash, canary_hash=None):
         devices = self.get_devices_by_status()
 
-        rest = devices['rest']
         canaries = devices['canaries']
         old_canaries = devices['old_canaries']
-
-        if canaries:
-            print('Canaries - Setting to commit %s' % canary_hash)
-            print(', '.join([c['device_name'] for c in canaries.values()]))
-            print()
-
-        if old_canaries:
-            print('Old Canaries - Removing from canary release')
-            print(', '.join([c['device_name'] for c in old_canaries.values()]))
-            print()
-
-        if rest:
-            print('Rest of the Devices')
-            print(', '.join([c['device_name'] for c in rest.values()]))
-            print()
 
         # Disable rolling releases
         print('Disabling rolling releases on the application')

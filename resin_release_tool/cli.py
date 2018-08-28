@@ -51,13 +51,47 @@ def enable_rolling(releaser):
 
 
 @cli.command()
+@pass_releaser
+def show_devices_status(releaser):
+    """Enables rolling releases in the application"""
+
+    devices = releaser.get_devices_by_status()
+
+    canaries = ', '.join(
+        [c['uuid'][:6] for c in devices['canaries'].values()])
+    old_canaries = ', '.join(
+        [c['uuid'][:6] for c in devices['old_canaries'].values()])
+
+    rest = list(devices['rest'].values())
+    rest_len = len(rest)
+    rest_info = ', '.join([c['uuid'][:6] for c in rest[:10]])
+    if rest_len > 10:
+        rest_info += f'... and {rest_len-10} more'
+
+    click.echo(f'Canaries: {canaries}')
+    click.echo(f'Old Canaries: {old_canaries}')
+    click.echo(f'Rest of the Devices: {rest_info}')
+
+
+@cli.command()
 @click.argument('release_commit')
 @click.argument('canary_commit')
 @pass_releaser
 @click.pass_context
 def release(ctx, releaser, release_commit, canary_commit):
     """Sets release and canary commits"""
+    if not releaser.is_valid_commit(release_commit):
+        click.echo(f'Invalid release commit: {release_commit}')
+        exit(2)
+    if not releaser.is_valid_commit(canary_commit):
+        click.echo('Invalid canary commit: {canary_commit}')
+        exit(2)
+
     ctx.invoke(info)
+    click.echo('Devices:')
+    ctx.invoke(show_devices_status)
+    click.echo()
+
     confirm_text = 'Are you sure you want to set '\
         'release/canary to: "%s" "%s"?' % (
             release_commit, canary_commit)
@@ -68,10 +102,14 @@ def release(ctx, releaser, release_commit, canary_commit):
 
 
 @cli.command()
+@click.option('--count', default=10, help='How many')
 @pass_releaser
-def releases(releaser):
+def releases(releaser, count):
     """Show success releases of the application"""
-    releaser.get_releases()
+    releases = list(releaser.get_releases().values())
+    click.echo(f'Latest {count} releases:')
+    for release in releases[:count]:
+        click.echo(f'{release["end_timestamp"]} {release["commit"]}')
 
 
 if __name__ == '__main__':
