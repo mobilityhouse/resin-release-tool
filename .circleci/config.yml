@@ -1,0 +1,38 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run: 
+          command: |
+            pip install poetry
+            poetry build 
+
+  publish:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run:
+          commmand: |
+            pip install poetry
+            poetry publish -u $USER -p $PASSWORD
+
+
+workflows:
+  version: 2
+  default:
+    jobs:
+      - build:
+          context: public
+      - publish:
+          context: public
+          requires:
+            - build
+          filters:
+            tags:
+              only:
+                - /^v[0-9]+\.[0-9]+\.[0-9]+$/
