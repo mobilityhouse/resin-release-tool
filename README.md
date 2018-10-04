@@ -1,6 +1,11 @@
 # resin-release-tool
 This tool is to set release canary in resin.io
 
+## Installation
+```
+pip install resin-release-tool
+```
+
 ## Build / Run locally
 You need poetry to build the project https://poetry.eustace.io/
 ```
@@ -10,22 +15,24 @@ poetry run resin-release-tool
 etc..
 ```
 
-## Installation(pre built)
-TODO: we need to add circleci and create pypi/github releases
-
-```
-pip install https://github.com/mobilityhouse/resin-release-tool/releases/download/0.1.0/resin_release_tool-0.1.0-py3-none-any.whl
-```
 
 ## Usage
 ```
-Usage: resin-release-tool [OPTIONS]
+Usage: resin-release-tool [OPTIONS] COMMAND [ARGS]...
+
+  You can set app and token as an environment variable, using RESIN_APP and
+  RESIN_TOKEN
 
 Options:
-  --app TEXT      Application name
-  --token TEXT    Resin.io auth token
-  --release TEXT  Commit hash of the release in resin to set application
-  --canary TEXT   Commit hash of the release in resin for canary
-  --releases      Show last releases
-  --help          Show this message and exit.
+  --token TOKEN  Resin.io auth token  [required]
+  --app APP_ID   Resin App name  [required]
+  --help         Show this message and exit.
+
+Commands:
+  disable_rolling      Disables rolling releases in the application
+  enable_rolling       Enables rolling releases in the application
+  info                 Information of the application
+  release              Sets release and canary commits
+  releases             Show success releases of the application
+  show_devices_status  Enables rolling releases in the application
 ```
