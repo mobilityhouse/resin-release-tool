@@ -1,8 +1,12 @@
 [tool.poetry]
 name = "resin-release-tool"
 version = "0.1.0"
+readme = "README.md"
 description = "Release tool to have canary in resin.io"
-authors = ["roger <rogerduran@gmail.com>"]
+homepage = "https://github.com/mobilityhouse/resin-release-tool"
+authors = ["roger <roger.duran@mobilityhouse.com>"]
+keywords = ["resin", "deploy"]
+license = "MIT"
 
 [tool.poetry.scripts]
 resin-release-tool = 'resin_release_tool.cli:cli'
