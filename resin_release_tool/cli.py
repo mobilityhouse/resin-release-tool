@@ -13,7 +13,7 @@ pass_releaser = click.make_pass_decorator(ResinReleaser)
               metavar='APP_ID', help='Resin App name')
 @click.pass_context
 def cli(ctx, app, token):
-    """You can set app and token as an environment variable,
+    """You can set app and token as environment variables,
     using RESIN_APP and RESIN_TOKEN
     """
     ctx.obj = ResinReleaser(token, app)
@@ -57,7 +57,7 @@ def enable_rolling(releaser):
 @cli.command()
 @pass_releaser
 def show_devices_status(releaser):
-    """Enables rolling releases in the application"""
+    """Show the status of the devices in the applications"""
 
     devices = releaser.get_devices_by_status()
 
@@ -109,7 +109,7 @@ def release(ctx, releaser, release_commit, canary_commit):
 @click.option('--count', default=10, help='How many')
 @pass_releaser
 def releases(releaser, count):
-    """Show success releases of the application"""
+    """Show successful releases of the application"""
     releases = list(releaser.get_releases().values())
     click.echo(f'Latest {count} releases:')
     for release in releases[:count]:
