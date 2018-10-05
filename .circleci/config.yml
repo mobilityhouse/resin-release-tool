@@ -19,7 +19,7 @@ jobs:
       - run:
           commmand: |
             pip install poetry
-            poetry publish -u $USER -p $PASSWORD
+            poetry publish -u ${PYPI_PUBLIC_USERNAME} -p ${PYPI_PUBLIC_PASSWORD}
 
 
 workflows:
@@ -27,9 +27,9 @@ workflows:
   default:
     jobs:
       - build:
-          context: public
+          context: tmh
       - publish:
-          context: public
+          context: tmh
           requires:
             - build
           filters:
