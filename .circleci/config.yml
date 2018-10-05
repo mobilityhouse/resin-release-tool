@@ -19,7 +19,7 @@ jobs:
       - run:
           command: |
             sudo pip install poetry
-            poetry publish -u ${PYPI_PUBLIC_USERNAME} -p ${PYPI_PUBLIC_PASSWORD}
+            poetry publish --build -u ${PYPI_PUBLIC_USERNAME} -p ${PYPI_PUBLIC_PASSWORD}
 
 
 workflows:
