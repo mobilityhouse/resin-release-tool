@@ -88,7 +88,7 @@ def release(ctx, releaser, release_commit, canary_commit):
         click.echo(f'Invalid release commit: {release_commit}')
         exit(2)
     if not releaser.is_valid_commit(canary_commit):
-        click.echo('Invalid canary commit: {canary_commit}')
+        click.echo(f'Invalid canary commit: {canary_commit}')
         exit(2)
 
     ctx.invoke(info)

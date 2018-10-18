@@ -12,9 +12,10 @@ class ResinReleaser:
         self.app_id = app_id
 
     def get_info(self):
+        """ Gets some information from the resin application """
         return self.models.application.get_by_id(self.app_id)
 
-    def get_canaries(self):
+    def _get_canaries(self):
         tags = self.models.tag.device.get_all_by_application(self.app_id)
         canaries = [
             tag['device']['__id'] for tag in tags
@@ -30,22 +31,34 @@ class ResinReleaser:
             if release['status'] == 'success'}
 
     def is_valid_commit(self, commit):
+        """ Checks if the commit is part of a past release
+
+        commit : str
+            Commit hash
+
+        Returns
+        -------
+        True if it's part of it, False otherwise
+        """
         return commit in self.get_releases()
 
     def disable_rolling(self):
+        """ Disables rolling release for the app"""
         self.models.application.disable_rolling_updates(self.app_id)
 
     def enable_rolling(self):
+        """ Enables rolling release for the app"""
         self.models.application.enable_rolling_updates(self.app_id)
 
     def set_app_to_release(self, release):
+        """ Sets app to release"""
         self.models.application.set_to_release(self.app_id, release)
 
-    def set_device_to_release(self, device, release):
+    def _set_device_to_release(self, device, release):
         uuid = device['uuid']
         self.models.device.set_to_release(uuid, release)
 
-    def get_all_devices(self):
+    def _get_all_devices(self):
         devices = self.models.device.get_all_by_application_id(self.app_id)
         return {d['id']: d for d in devices}
 
@@ -53,8 +66,8 @@ class ResinReleaser:
     def get_devices_by_status(self):
         """Group devices by status: canary, old_canary, rest
         """
-        all_devices = self.get_all_devices()
-        canaries = {c: all_devices[c] for c in self.get_canaries()}
+        all_devices = self._get_all_devices()
+        canaries = {c: all_devices[c] for c in self._get_canaries()}
 
         def not_canary(device):
             return device['id'] not in canaries and \
@@ -75,6 +88,16 @@ class ResinReleaser:
         }
 
     def set_release(self, release_hash, canary_hash=None):
+        """ Sets a release for the given to the non_canary devices to given
+        commit id release_hash and to the canary devices to the commit id
+        canary_hash
+
+        release_hash : str
+            Commit ID to set the devices excluding the canary devices
+
+        canary_hash :  str (default=None)
+            Commit ID to set the canary devices
+        """
         devices = self.get_devices_by_status()
 
         canaries = devices['canaries']
@@ -89,14 +112,14 @@ class ResinReleaser:
             # Reset old canaries to app release
             for old_canary in old_canaries.values():
                 print(old_canary['device_name'])
-                self.set_device_to_release(old_canary, None)
+                self._set_device_to_release(old_canary, None)
 
         if canaries:
             print('Setting canaries')
             # Set canaries to current canary release
             for canary in canaries.values():
                 print(canary['device_name'])
-                self.set_device_to_release(canary, canary_hash)
+                self._set_device_to_release(canary, canary_hash)
 
         # We do this here to trigger update in all devices
         print('Setting up current release to: %s' % release_hash)
