@@ -1,22 +1,22 @@
 import click
-from .releaser import ResinReleaser
+from .releaser import BalenaReleaser
 
 
 # get releaser object from the context
-pass_releaser = click.make_pass_decorator(ResinReleaser)
+pass_releaser = click.make_pass_decorator(BalenaReleaser)
 
 
 @click.group()
-@click.option('--token', required=True, envvar='RESIN_TOKEN',
-              metavar='TOKEN', help='Resin.io auth token')
-@click.option('--app', required=True, envvar='RESIN_APP',
-              metavar='APP_ID', help='Resin App name')
+@click.option('--token', required=True, envvar='BALENA_TOKEN',
+              metavar='TOKEN', help='Balena.io auth token')
+@click.option('--app', required=True, envvar='BALENA_APP',
+              metavar='APP_ID', help='Balena App name')
 @click.pass_context
 def cli(ctx, app, token):
     """You can set app and token as an environment variable,
-    using RESIN_APP and RESIN_TOKEN
+    using BALENA_APP and BALENA_TOKEN
     """
-    ctx.obj = ResinReleaser(token, app)
+    ctx.obj = BalenaReleaser(token, app)
 
 
 @cli.command()

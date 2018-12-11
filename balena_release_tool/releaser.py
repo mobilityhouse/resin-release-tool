@@ -1,13 +1,13 @@
 from functools import lru_cache
-from resin import Resin
+from balena import Balena
 
 
-class ResinReleaser:
+class BalenaReleaser:
     def __init__(self, token, app_id):
-        self.resin = Resin()
-        self.resin.auth.login_with_token(token)
+        self.balena = Balena()
+        self.balena.auth.login_with_token(token)
 
-        self.models = self.resin.models
+        self.models = self.balena.models
 
         self.app_id = app_id
 

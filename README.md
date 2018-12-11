@@ -1,5 +1,5 @@
-# resin-release-tool
-This tool is to set release canary in resin.io
+# balena-release-tool
+This tool is to set release canary in Balena.io
 
 ## Build / Run locally
 You need poetry to build the project https://poetry.eustace.io/
@@ -19,13 +19,13 @@ pip install https://github.com/mobilityhouse/resin-release-tool/releases/downloa
 
 ## Usage
 ```
-Usage: resin-release-tool [OPTIONS]
+Usage: balena-release-tool [OPTIONS]
 
 Options:
   --app TEXT      Application name
-  --token TEXT    Resin.io auth token
-  --release TEXT  Commit hash of the release in resin to set application
-  --canary TEXT   Commit hash of the release in resin for canary
+  --token TEXT    Balena.io auth token
+  --release TEXT  Commit hash of the release in Balena to set application
+  --canary TEXT   Commit hash of the release in Balena for canary
   --releases      Show last releases
   --help          Show this message and exit.
 ```
