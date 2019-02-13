@@ -11,6 +11,8 @@ class ResinReleaser:
 
         self.app_id = app_id
 
+        self.uuid_list = [] #list of all the UUIDs in the app
+        
     def get_info(self):
         return self.models.application.get_by_id(self.app_id)
 
@@ -21,6 +23,71 @@ class ResinReleaser:
             if tag['tag_key'] == 'CANARY']
         return canaries
 
+    def get_tags_per_device(self):
+        all_apps = self.models.application.get_all()
+        if len(next((app for app in all_apps if app['id'] == int(self.app_id)),{})) != 0: #checks if the app exists
+            print("Found app with app_id ", self.app_id, "in Balena")
+            app_info = next((app for app in all_apps if app['id'] == int(self.app_id)),{})
+            all_devices = self.models.device.get_all_by_application_id(app_info['id'])
+            tags_per_device = []
+            for device in all_devices:
+                tags_per_device.append({'uuid':device['uuid'],
+                                        'tags':self.models.tag.device.get_all_by_device(device['uuid'])
+                })
+            entries_to_remove = ('id', 'device', '__metadata')
+            for device in tags_per_device: #removes all the key/values except, "tag_key" and "value"
+                for tag in device['tags']:
+                    for k in entries_to_remove:
+                        tag.pop(k)
+            for device in tags_per_device:
+                dict_of_vars = {}
+                for tag in device['tags']:
+                    dict_of_vars[tag['tag_key']] = tag['value']
+                del(device['tags'])
+                device['tags'] = dict_of_vars
+            self.uuid_list = [uuid['uuid'] for uuid in tags_per_device]
+            return tags_per_device
+        else:
+            print("Could not find the app with app_id ", self.app_id)
+                    
+    def get_app_env_vars(self):        
+        allvars = self.models.environment_variables.application.get_all(int(self.app_id))
+        list_of_app_env_vars = [{'id':var['id'], var['name']:var['value']} for var in allvars]
+        return list_of_app_env_vars
+        
+    def get_device_env_vars(self):
+        list_of_env_vars_per_device = []
+        for device in self.uuid_list:
+            allvars = self.models.environment_variables.device.get_all(device)
+            list_of_vars = [{'id':var['id'], var['name']:var['value']} for var in allvars]
+            list_of_env_vars_per_device.append({device:list_of_vars})
+        return list_of_env_vars_per_device
+
+    def set_device_env_vars_from_tags(self, tags_per_device, device_env_vars):
+        for device in tags_per_device:
+            uuid = device['uuid']
+            print("----------------------------------------------------------")
+            print("Device: ", uuid)
+            for tag,value in device['tags'].items():
+                print('--')
+                try:
+                    self.models.environment_variables.device.create(device['uuid'], tag, value)
+                    print("creating/overriding var: ", device['uuid'], tag, value)
+                except:
+                    print("var", tag, "already exists!")
+                    for elem in device_env_vars:
+                        if uuid in elem:
+                            list_of_env_vars = elem[uuid]
+                            for var in list_of_env_vars:
+                                if tag in var:
+                                    var_id = var['id']
+                                    old_val = var[tag]
+                                    if old_val != value:
+                                        print("Updating var ", tag, "with value", value)
+                                        self.models.environment_variables.device.update(var_id, value)
+                                    else:
+                                        print("Not updating var ", tag, "since the value did not change!")
+    
     @lru_cache()
     def get_releases(self):
         releases = self.models.release.get_all_by_application(self.app_id)
