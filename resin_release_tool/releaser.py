@@ -25,29 +25,22 @@ class ResinReleaser:
         return canaries
 
     def get_tags_per_device(self):
-        all_apps = self.models.application.get_all()
-        if len(next((app for app in all_apps if app['id'] == int(self.app_id)),{})) != 0: #checks if the app exists
-            print("Found app with app_id ", self.app_id, "in Balena")
-            app_info = next((app for app in all_apps if app['id'] == int(self.app_id)),{})
-            all_devices = self.models.device.get_all_by_application_id(app_info['id'])
-            tags_per_device = [{'uuid':device['uuid'],
-                                'tags':self.models.tag.device.get_all_by_device(device['uuid'])}
-                               for device in all_devices]
-            entries_to_remove = ('id', 'device', '__metadata')
-            for device in tags_per_device: #removes all the key/values except, "tag_key" and "value"
-                for tag in device['tags']:
-                    for k in entries_to_remove:
-                        tag.pop(k)
-            for device in tags_per_device:
-                dict_of_vars = {}
-                for tag in device['tags']:
-                    dict_of_vars[tag['tag_key']] = tag['value']
-                del(device['tags'])
-                device['tags'] = dict_of_vars
-            self.uuid_list = [uuid['uuid'] for uuid in tags_per_device]
-            return tags_per_device
-        else:
-            print("Could not find the app with app_id ", self.app_id)
+        all_devices = self.get_all_devices()
+        tags = self.models.tag.device.get_all_by_application(self.app_id)
+        device_dict = {}
+        for device in all_devices.values():
+            device_id = device['id']
+            device_dict[device_id] = {
+                'uuid': device['uuid'],
+                'tags': {},
+            }
+        for elem in tags:
+            device_id = elem['device']['__id']
+            tag_key = elem['tag_key']
+            value = elem['value']
+            device_dict[device_id]['tags'][tag_key] = value
+        tags_per_device = [device_dict[device] for device in list(device_dict.keys())]
+        return tags_per_device
                     
     def get_app_env_vars(self):        
         allvars = self.models.environment_variables.application.get_all(int(self.app_id))
