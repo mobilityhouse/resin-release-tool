@@ -1,5 +1,6 @@
 from functools import lru_cache
 from resin import Resin
+import json
 
 
 class ResinReleaser:
@@ -66,25 +67,24 @@ class ResinReleaser:
             uuid = device['uuid']
             print("----------------------------------------------------------")
             print("Device: ", uuid)
-            for tag,value in device['tags'].items():
-                print('--')
-                try:
-                    self.models.environment_variables.device.create(device['uuid'], tag, value)
-                    print("creating/overriding var: ", device['uuid'], tag, value)
-                except:
-                    print("var", tag, "already exists!")
-                    for elem in device_env_vars:
-                        if uuid in elem:
-                            list_of_env_vars = elem[uuid]
-                            for var in list_of_env_vars:
-                                if tag in var:
-                                    var_id = var['id']
-                                    old_val = var[tag]
-                                    if old_val != value:
-                                        print("Updating var ", tag, "with value", value)
-                                        self.models.environment_variables.device.update(var_id, value)
-                                    else:
-                                        print("Not updating var ", tag, "since the value did not change!")
+            try:
+                value = json.dumps(device['tags'])
+                self.models.environment_variables.device.create(device['uuid'], 'DEVICE_TAG_LIST', value)
+                print("creating/overriding var: ", device['uuid'], 'DEVICE_TAG_LIST', value)
+            except:
+                print("env var 'DEVICE_TAG_LIST' already exists!")
+                for elem in device_env_vars:
+                    if uuid in elem:
+                        list_of_env_vars = elem[uuid]
+                        for var in list_of_env_vars:
+                            if 'DEVICE_TAG_LIST' in var:
+                                var_id = var['id']
+                                old_val = var['DEVICE_TAG_LIST']
+                                if old_val != value:
+                                    print("Updating var DEVICE_TAG_LIST with value", value)
+                                    self.models.environment_variables.device.update(var_id, value)
+                                else:
+                                    print("Not updating var DEVICE_TAG_LIST since the value did not change!")
     
     @lru_cache()
     def get_releases(self):
