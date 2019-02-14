@@ -127,7 +127,6 @@ def show_tags_per_device(releaser):
 @pass_releaser
 def show_device_env_vars(releaser):
     """Shows overriden ENV VARS in each device"""
-    tag = releaser.get_tags_per_device()
     env_vars = releaser.get_device_env_vars()
     click.echo(env_vars)
 
