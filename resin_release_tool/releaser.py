@@ -34,6 +34,7 @@ class ResinReleaser:
                 'uuid': device['uuid'],
                 'tags': {},
             }
+            self.uuid_list.append(device['uuid'])
         for elem in tags:
             device_id = elem['device']['__id']
             tag_key = elem['tag_key']
