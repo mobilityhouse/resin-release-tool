@@ -29,11 +29,9 @@ class ResinReleaser:
             print("Found app with app_id ", self.app_id, "in Balena")
             app_info = next((app for app in all_apps if app['id'] == int(self.app_id)),{})
             all_devices = self.models.device.get_all_by_application_id(app_info['id'])
-            tags_per_device = []
-            for device in all_devices:
-                tags_per_device.append({'uuid':device['uuid'],
-                                        'tags':self.models.tag.device.get_all_by_device(device['uuid'])
-                })
+            tags_per_device = [{'uuid':device['uuid'],
+                                'tags':self.models.tag.device.get_all_by_device(device['uuid'])}
+                               for device in all_devices]
             entries_to_remove = ('id', 'device', '__metadata')
             for device in tags_per_device: #removes all the key/values except, "tag_key" and "value"
                 for tag in device['tags']:
