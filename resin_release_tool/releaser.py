@@ -1,5 +1,6 @@
 from functools import lru_cache
 from resin import Resin
+import json
 
 
 class ResinReleaser:
@@ -21,6 +22,62 @@ class ResinReleaser:
             if tag['tag_key'] == 'CANARY']
         return canaries
 
+    def get_tags_per_device(self):
+        all_devices = self.get_all_devices()
+        tags = self.models.tag.device.get_all_by_application(self.app_id)
+        device_dict = {}
+        for device in all_devices.values():
+            device_id = device['id']
+            device_dict[device_id] = {
+                'uuid': device['uuid'],
+                'tags': {},
+            }
+        for elem in tags:
+            device_id = elem['device']['__id']
+            tag_key = elem['tag_key']
+            value = elem['value']
+            device_dict[device_id]['tags'][tag_key] = value
+        tags_per_device = [device_dict[device] for device in list(device_dict.keys())]
+        return tags_per_device
+                    
+    def get_app_env_vars(self):        
+        all_vars = self.models.environment_variables.application.get_all(int(self.app_id))
+        return [{'id':var['id'], var['name']:var['value']} for var in all_vars]
+                
+    def get_device_env_vars(self):
+        list_of_env_vars_per_device = []
+        tags_per_device = self.get_tags_per_device()
+        uuid_list = [device['uuid'] for device in tags_per_device]
+        for device in uuid_list:
+            allvars = self.models.environment_variables.device.get_all(device)
+            list_of_vars = [{'id':var['id'], var['name']:var['value']} for var in allvars]
+            list_of_env_vars_per_device.append({device:list_of_vars})
+        return list_of_env_vars_per_device
+
+    def set_device_env_vars_from_tags(self, tags_per_device, device_env_vars):
+        for device in tags_per_device:
+            uuid = device['uuid']
+            print("----------------------------------------------------------")
+            print("Device: ", uuid)
+            try:
+                value = json.dumps(device['tags'])
+                self.models.environment_variables.device.create(device['uuid'], 'DEVICE_TAG_LIST', value)
+                print("creating/overriding var: ", device['uuid'], 'DEVICE_TAG_LIST', value)
+            except:
+                print("env var 'DEVICE_TAG_LIST' already exists!")
+                for elem in device_env_vars:
+                    if uuid in elem:
+                        list_of_env_vars = elem[uuid]
+                        for var in list_of_env_vars:
+                            if 'DEVICE_TAG_LIST' in var:
+                                var_id = var['id']
+                                old_val = var['DEVICE_TAG_LIST']
+                                if old_val != value:
+                                    print("Updating var DEVICE_TAG_LIST with value", value)
+                                    self.models.environment_variables.device.update(var_id, value)
+                                else:
+                                    print("Not updating var DEVICE_TAG_LIST since the value did not change!")
+    
     @lru_cache()
     def get_releases(self):
         releases = self.models.release.get_all_by_application(self.app_id)

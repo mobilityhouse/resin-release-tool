@@ -116,5 +116,35 @@ def releases(releaser, count):
         click.echo(f'{release["end_timestamp"]} {release["commit"]}')
 
 
+@cli.command()
+@pass_releaser
+def show_tags_per_device(releaser):
+    """ Shows device's tags"""
+    tag = releaser.get_tags_per_device()
+    click.echo(tag)
+
+@cli.command()
+@pass_releaser
+def show_device_env_vars(releaser):
+    """Shows overriden ENV VARS in each device"""
+    env_vars = releaser.get_device_env_vars()
+    click.echo(env_vars)
+
+@cli.command()
+@pass_releaser
+def show_app_env_vars(releaser):
+    """Shows application ENV VARS with default values"""
+    env_vars = releaser.get_app_env_vars()
+    click.echo(env_vars)
+
+@cli.command()
+@pass_releaser
+def set_device_env_vars(releaser):
+    """Override ENV VARS with with values of tags"""
+    tags_per_device = releaser.get_tags_per_device()
+    device_env_vars = releaser.get_device_env_vars()
+    releaser.set_device_env_vars_from_tags(tags_per_device, device_env_vars)
+    
+    
 if __name__ == '__main__':
     cli()
