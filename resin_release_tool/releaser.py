@@ -44,10 +44,9 @@ class ResinReleaser:
         return tags_per_device
                     
     def get_app_env_vars(self):        
-        allvars = self.models.environment_variables.application.get_all(int(self.app_id))
-        list_of_app_env_vars = [{'id':var['id'], var['name']:var['value']} for var in allvars]
-        return list_of_app_env_vars
-        
+        all_vars = self.models.environment_variables.application.get_all(int(self.app_id))
+        return [{'id':var['id'], var['name']:var['value']} for var in all_vars]
+                
     def get_device_env_vars(self):
         list_of_env_vars_per_device = []
         for device in self.uuid_list:

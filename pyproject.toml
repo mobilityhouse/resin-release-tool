@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "resin-release-tool"
-version = "0.1.1"
+version = "0.1.2"
 readme = "README.md"
 description = "Release tool to have canary in resin.io"
 homepage = "https://github.com/mobilityhouse/resin-release-tool"
