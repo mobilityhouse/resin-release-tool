@@ -12,8 +12,6 @@ class ResinReleaser:
 
         self.app_id = app_id
 
-        self.uuid_list = [] #list of all the UUIDs in the app
-        
     def get_info(self):
         return self.models.application.get_by_id(self.app_id)
 
@@ -34,7 +32,6 @@ class ResinReleaser:
                 'uuid': device['uuid'],
                 'tags': {},
             }
-            self.uuid_list.append(device['uuid'])
         for elem in tags:
             device_id = elem['device']['__id']
             tag_key = elem['tag_key']
@@ -49,7 +46,9 @@ class ResinReleaser:
                 
     def get_device_env_vars(self):
         list_of_env_vars_per_device = []
-        for device in self.uuid_list:
+        tags_per_device = self.get_tags_per_device()
+        uuid_list = [device['uuid'] for device in tags_per_device]
+        for device in uuid_list:
             allvars = self.models.environment_variables.device.get_all(device)
             list_of_vars = [{'id':var['id'], var['name']:var['value']} for var in allvars]
             list_of_env_vars_per_device.append({device:list_of_vars})
