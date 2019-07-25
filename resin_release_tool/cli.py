@@ -110,7 +110,9 @@ def release(ctx, releaser, release_commit, canary_commit):
 @pass_releaser
 def releases(releaser, count):
     """Show successful releases of the application"""
-    releases = list(releaser.get_releases().values())
+    releases = sorted(releaser.get_releases().values(),
+                      key=lambda rel: rel['end_timestamp'],
+                      reverse=True)
     click.echo(f'Latest {count} releases:')
     for release in releases[:count]:
         click.echo(f'{release["end_timestamp"]} {release["commit"]}')
