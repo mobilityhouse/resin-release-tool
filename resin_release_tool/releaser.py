@@ -21,6 +21,26 @@ class BalenaReleaser:
             if tag['tag_key'] == 'CANARY']
         return canaries
 
+    def get_devices_by_envar(self, envar):
+        devices_by_envar = []
+        devices = self.models.device.get_all()
+        for device in devices:
+            env_variables = device.models.environment_variables.get_all_by_application(self.app_id)
+            if envar in env_variables:
+                devices_by_envar.append(device)
+        return {d['id']: d for d in devices_by_envar}
+
+    def remove_envar_from_devices(self, devices, envar):
+        results = {}
+        for device in devices:
+            try:
+                balena.models.environment_variables.device.remove(device.values()[envar]['id'])
+                results['ok'] += 1
+            except:
+                results['failed'] += 1
+                results['failed']['device'] = device['id']
+
+
     @lru_cache()
     def get_releases(self):
         releases = self.models.release.get_all_by_application(self.app_id)
