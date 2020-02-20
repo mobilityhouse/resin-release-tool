@@ -21,25 +21,116 @@ class BalenaReleaser:
             if tag['tag_key'] == 'CANARY']
         return canaries
 
-    def get_devices_by_envar(self, envar):
-        devices_by_envar = []
+    def validate_environment_model(self, environment_model):
+        if self.is_device_level_environment_model(environment_model) or \
+                self.is_application_level_environment_model(environment_model):
+            is_valid = True
+        else: is_valid = False
+        return is_valid
+
+    def is_device_level_environment_model(self, environment_model):
+        environment_models = ['devapp', 'devserv']
+        return environment_model in environment_models
+
+    def is_application_level_environment_model(self, environment_model):
+        environment_models = ['app', 'serv']
+        return environment_model in environment_models
+
+    def get_devices_by_envar_name(self, envar, environment_model):
+        if self.validate_environment_model(environment_model):
+            if self.is_application_level_environment_model(environment_model):
+                return self.get_all_devices()
+            else:
+                function = getattr(self, f'_get_devices_by_envar_name_{environment_model}')
+        else:
+            function = lambda _:\
+                f'The environment {environment_model} model selected is invalid'
+        return function(envar)
+
+    def _get_devices_by_envar_name_devapp(self, envar):
+        devices_filtered = []
         devices = self.models.device.get_all()
         for device in devices:
-            env_variables = device.models.environment_variables.get_all_by_application(self.app_id)
-            if envar in env_variables:
-                devices_by_envar.append(device)
-        return {d['id']: d for d in devices_by_envar}
+            device_env_variables = self._get_envars_info_devapp(device)
+            if envar in device_env_variables.keys():
+                devices_filtered.append(device)
+        return {d['id']: d for d in devices_filtered}
 
-    def remove_envar_from_devices(self, devices, envar):
-        results = {}
+
+#----------------------
+
+    def get_envars_info(self, environment_model, *device):
+        if self.validate_environment_model(environment_model):
+            if self.is_device_level_environment_model(environment_model):
+                function = getattr(self, f'_get_envars_info_{environment_model}')
+                return function(device)
+
+    def _get_envars_info_app(self):
+        env_variables = self.models.environment_variables.\
+            application.get_all(self.app_id)
+        return self._formatted_envars_info(env_variables)
+
+    def _get_envars_info_serv(self):
+        pass
+
+    def _get_envars_info_devapp(self, device):
+        env_variables = self.models.\
+            environment_variables.device.get_all(device['uuid'])
+        return self._formatted_envars_info(env_variables)
+
+    def _formatted_envars_info(self, env_variables):
+        return {env_variable['name']:env_variable for \
+                                env_variable in env_variables}
+
+    def get_devices_filtered_by_envar_values(\
+                                             self,\
+                                             environment_model,\
+                                             envar_name, envar_values,\
+                                             inclusive_condition: bool = False):
+        if self.is_device_level_environment_model(environment_model):
+            devices_filtered = []
+            devices = self.get_devices_by_envar_name(envar_name, environment_model)
+            for device in devices.values():
+                device_envar_value = self.\
+                    get_envars_info(environment_model, device)[envar_name]['value']
+                if (device_envar_value in envar_values) == inclusive_condition:
+                    devices_filtered.append(device)
+            return {d['id']: d for d in devices_filtered}
+        else:
+            return 'The environment model is not valid on this method.'
+
+    def remove_envar_of_environment_model(self, envar_name, \
+                                            environment_model, *devices):
+        if self.validate_environment_model(environment_model):
+            if self.is_device_level_environment_model(environment_model):
+                if not devices:
+                    return 'There are no devices to remove environment variable.'
+            function = getattr(self, f'_remove_envar_of_{environment_model}')
+            return function(envar_name)
+
+    def _remove_envar_of_devserv(self, envar_name, devices):
+        results = {'done':0, 'failed':0}
         for device in devices:
+            envar_id = self._get_envars_info_devapp(device)[envar_name]['id']
             try:
-                balena.models.environment_variables.device.remove(device.values()[envar]['id'])
-                results['ok'] += 1
+                self.models.environment_variables.device.remove(envar_id)
+                results['done'] += 1
             except:
                 results['failed'] += 1
-                results['failed']['device'] = device['id']
+                results['failed_devices'][device['uuid']] = device
+        return results
 
+    def _remove_envar_of_devapp(self, envar_name, devices):
+        results = {'done':0, 'failed':0}
+        for device in devices:
+            envar_id = self._get_envars_info_devapp(device)[envar_name]['id']
+            try:
+                self.models.environment_variables.device.remove(envar_id)
+                results['done'] += 1
+            except:
+                results['failed'] += 1
+                results['failed_devices'][device['uuid']] = device
+        return results
 
     @lru_cache()
     def get_releases(self):

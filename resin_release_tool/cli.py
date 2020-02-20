@@ -127,33 +127,41 @@ def show_devices(releaser, devices_to_show):
 
 
 @cli.command()
-@click.option('--remove-envvar-by-condition', envar, type_envar, \
-              values_to_filter, include, help='Filter devices by \
-              condition and updates a device app environment variable')
+@click.argument('envar_model')
+@click.argument('envar_name')
+@click.argument('envar_value')
+@click.argument('exclusive_condition', type=bool)
 @pass_releaser
-def releases(ctx, releaser, envar, type_envar, values_to_filter, \
-             include: bool = False):
-    devices_to_modify = []
-    devices = releaser.get_devices_by_envar(envar, type_envar)
-    for device in devices:
-        if include:
-            if device.values()[envar] in values_to_filter:
-                devices_to_modify.append(device)
-        else:
-            if device.values()[envar] not in values_to_filter:
-                devices_to_modify.append(device)
+@click.pass_context
+def filter_and_remove_env_var(ctx, releaser, envar_model, \
+                              envar_name, envar_value, exclusive_condition: bool):
+    """Filter devices by enviroment variables and removes them."""
+
+    try:
+        devices = releaser.get_devices_filtered_by_condition(
+            envar_model, envar_name, envar_value, exclusive_condition)
+    except Exception as exception:
+        click.echo(exception)
+        exit(2)
     ctx.invoke(info)
     click.echo('Devices to be modified:')
-    ctx.invoke(show_devices, devices_to_modify)
-    click.echo()
+
+    list_devices = list(devices.values())
+    list_devices_len = len(list_devices)
+    list_devices_info = ', '.join([c['uuid'][:6] for c in list_devices[:10]])
+    if list_devices_len > 10:
+        list_devices_info += f'... and {list_devices_len-10} more'
+    click.echo(f'uuids: {list_devices_info}')
 
     confirm_text = 'Are you sure you want to delete '\
         'the environment variable "%s" for this devices?' % (
-            envar)
+            envar_name)
     if not click.confirm(confirm_text):
         click.echo('Cancelled!')
         exit(1)
-    releaser.remove_envar_from_devices(devices_to_modify, envar)
+    results = releaser.remove_from_environment_model_by_values(
+        envar_model, envar_name, envar_value, exclusive_condition)
+    click.echo(results)
 
 if __name__ == '__main__':
     cli()
