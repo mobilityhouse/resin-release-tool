@@ -1,5 +1,6 @@
 from functools import lru_cache
 from balena import Balena
+from balena.exceptions import BalenaException
 
 
 class BalenaReleaser:
@@ -213,7 +214,7 @@ class BalenaReleaser:
         try:
             self.models.environment_variables.application.remove(envar['id'])
             results = 'Success!'
-        except:
+        except BalenaException:
             results = 'Failed'
         return results
 
@@ -222,7 +223,7 @@ class BalenaReleaser:
             self.models.environment_variables.\
                 service_environment_variable.remove(envar['id'])
             results = 'Success!'
-        except:
+        except BalenaException:
             results = 'Failed'
         return results
 
@@ -233,7 +234,7 @@ class BalenaReleaser:
             try:
                 self.models.environment_variables.device.remove(envar_id)
                 results['done'] += 1
-            except:
+            except BalenaException:
                 results['failed'] += 1
                 results['failed_devices'][device['uuid']] = device
         return results
@@ -246,7 +247,7 @@ class BalenaReleaser:
                 self.models.environment_variables.\
                     device_service_environment_variable.remove(envar_id)
                 results['done'] += 1
-            except:
+            except BalenaException:
                 results['failed'] += 1
                 results['failed_devices'][device['uuid']] = device
         return results
