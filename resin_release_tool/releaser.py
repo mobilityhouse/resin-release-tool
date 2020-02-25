@@ -62,9 +62,8 @@ class BalenaReleaser:
         return model_method
 
     #To date, this doesnt filter by service name at any service level!
-    def get_devices_filtered_by_condition(self,
-                                          env_model, envar_name,
-                                          envar_values, inclusive=False):
+    def get_devices_filtered_by_condition(
+            self, env_model, envar_name, envar_values, inclusive=False):
         if self.is_application_level_environment_model(env_model):
             devices = self._get_devices_by_envar_value_app_level(
                 env_model, envar_name, envar_values, inclusive)
@@ -92,7 +91,7 @@ class BalenaReleaser:
         return devices
 
     def _get_devices_by_envar_value_device_level(
-            self, env_model, envar_name, envar_values, inclusive: bool = False):
+            self, env_model, envar_name, envar_values, inclusive=False):
         devices_filtered = []
         envar_exists = False
         devices = {d['id']:d for d in self.models.device.get_all()}
@@ -126,10 +125,8 @@ class BalenaReleaser:
         return {env_variable['name']:env_variable \
                 for env_variable in env_variables}
 
-    def remove_from_environment_model_by_values(self, \
-                                                envar_model, envar_name,\
-                                                envar_values='', \
-                                                inclusive: bool = False):
+    def remove_from_environment_model_by_values(
+            self, envar_model, envar_name, envar_values='', inclusive=False):
         self.validate_environment_model(envar_model)
         results = {}
         devices = self.get_devices_filtered_by_condition(
