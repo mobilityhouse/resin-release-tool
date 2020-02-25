@@ -140,7 +140,7 @@ def filter_and_remove_env_var(ctx, releaser, envar_model, \
     try:
         devices = releaser.get_devices_filtered_by_condition(
             envar_model, envar_name, envar_value, exclusive)
-    except Exception as exception:
+    except ValueError as exception:
         click.echo(exception)
         exit(2)
     ctx.invoke(info)
