@@ -130,16 +130,16 @@ def show_devices(releaser, devices_to_show):
 @click.argument('envar_model')
 @click.argument('envar_name')
 @click.argument('envar_value')
-@click.argument('exclusive_condition', type=bool)
+@click.option('--exclusive', is_flag=True, default=False)
 @pass_releaser
 @click.pass_context
 def filter_and_remove_env_var(ctx, releaser, envar_model, \
-                              envar_name, envar_value, exclusive_condition: bool):
+                              envar_name, envar_value, exclusive):
     """Filter devices by enviroment variables and removes them."""
 
     try:
         devices = releaser.get_devices_filtered_by_condition(
-            envar_model, envar_name, envar_value, exclusive_condition)
+            envar_model, envar_name, envar_value, exclusive)
     except Exception as exception:
         click.echo(exception)
         exit(2)
@@ -160,7 +160,7 @@ def filter_and_remove_env_var(ctx, releaser, envar_model, \
         click.echo('Cancelled!')
         exit(1)
     results = releaser.remove_from_environment_model_by_values(
-        envar_model, envar_name, envar_value, exclusive_condition)
+        envar_model, envar_name, envar_value, exclusive)
     click.echo(results)
 
 if __name__ == '__main__':
