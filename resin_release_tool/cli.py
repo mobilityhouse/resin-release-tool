@@ -130,12 +130,24 @@ def show_devices(releaser, devices_to_show):
 @click.argument('envar_model')
 @click.argument('envar_name')
 @click.argument('envar_value')
-@click.option('--exclusive', is_flag=True, default=False)
+@click.option('--exclusive', is_flag=True, default=False, help=\
+              'Defines if must include or must not include any previously defined envar_value')
 @pass_releaser
 @click.pass_context
-def filter_and_remove_env_var(ctx, releaser, envar_model, \
-                              envar_name, envar_value, exclusive):
-    """Filter devices by enviroment variables and removes them."""
+def filter_and_remove_env_var(ctx, releaser, envar_model, envar_name, \
+                              envar_value, exclusive):
+    """
+    Filter devices by enviroment variables and removes them.
+
+    -envar_model: Application: app // Service: serv //
+    Device Application: devapp // Device Service: devserv
+
+    -envar_name:
+    Name of the environment variable to remove.
+
+    -envar_value:
+    Posible values to use to filter. Could be a list or empty.
+    """
 
     try:
         devices = releaser.get_devices_filtered_by_condition(
