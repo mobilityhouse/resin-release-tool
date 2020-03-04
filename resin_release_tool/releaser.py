@@ -1,14 +1,17 @@
+from enum import Enum, unique
 from functools import lru_cache
 from balena import Balena
 from balena.exceptions import BalenaException
 
+@unique
+class CliParamEnvModelMap(Enum):
+    """Maps cli model name argument to model in balena sdk"""
+    application = 'app'
+    service_environment_variable = 'service'
+    device = 'device'
+    device_service_environment_variable = 'device_service'
 
 class BalenaReleaser:
-
-    APP_MODEL_PARAM = 'app'
-    SERVICE_MODEL_PARAM = 'serv'
-    DEVICE_APP_MODEL_PARAM = 'devapp'
-    DEVICE_SERV_MODEL_PARAM = 'devserv'
 
     def __init__(self, token, app_id):
         self.balena = Balena()
@@ -28,31 +31,24 @@ class BalenaReleaser:
         return canaries
 
     def is_device_level_environment_model(self, envar_model):
-        envar_models = [self.DEVICE_APP_MODEL_PARAM, self.DEVICE_SERV_MODEL_PARAM]
-        return envar_model in envar_models
+        envar_models = ['device', 'device_service_environment_variable']
+        return self.get_envar_model_name(envar_model) in envar_models
 
     def is_application_level_environment_model(self, envar_model):
-        envar_models = [self.APP_MODEL_PARAM, self.SERVICE_MODEL_PARAM]
-        return envar_model in envar_models
+        envar_models = ['application', 'service_environment_variable']
+        return self.get_envar_model_name(envar_model) in envar_models
 
     def validate_environment_model(self, envar_model):
-        if not self.is_device_level_environment_model(envar_model) or \
-                self.is_application_level_environment_model(envar_model):
+        if not self.is_device_level_environment_model(envar_model) and \
+               not self.is_application_level_environment_model(envar_model):
             raise ValueError(f'The environment {envar_model} model selected is invalid')
 
     def get_envar_model_name(self, envar_model):
-        if envar_model == self.APP_MODEL_PARAM:
-            envar_model_name = 'application'
-        elif envar_model == self.SERVICE_MODEL_PARAM:
-            envar_model_name = 'service_environment_variable'
-        elif envar_model == self.DEVICE_APP_MODEL_PARAM:
-            envar_model_name = 'device'
-        elif envar_model == self.DEVICE_SERV_MODEL_PARAM:
-            envar_model_name = 'device_service_environment_variable'
-        else:
+        try:
+            return CliParamEnvModelMap(envar_model).name
+        except ValueError:
             raise ValueError(
                 f'The environment {envar_model} model selected is invalid')
-        return envar_model_name
 
     def get_model_methods_base(self, envar_model):
         base_model_method = self.models.environment_variables
