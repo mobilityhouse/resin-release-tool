@@ -127,20 +127,20 @@ def show_devices(releaser, devices_to_show):
 
 
 @cli.command()
-@click.argument('envar_model')
-@click.argument('envar_name')
+@click.argument('filtering_params')
 @click.argument('envar_value')
-@click.option('--exclusive', is_flag=True, default=False, help=\
-              'Defines if must include or must not include any previously defined envar_value')
+@click.option('--inclusive', is_flag=True, default=True, help=\
+              'Defines if filtering must be inclusive or not for the envar_value values')
 @pass_releaser
 @click.pass_context
-def filter_and_remove_env_var(ctx, releaser, envar_model, envar_name, \
-                              envar_value, exclusive):
+def filter_and_remove_env_var(ctx, releaser, filtering_params,\
+                              envar_value, inclusive):
     """
     Filter devices by enviroment variables and removes them.
 
-    -envar_model: Application: app // Service: serv //
-    Device Application: devapp // Device Service: devserv
+    -filtering_params: 'envar_model:envar_name' in not service
+    nor device_service envar_model and 'envar_model:service_name:envar_name'
+    for service envar filtering.
 
     -envar_name:
     Name of the environment variable to remove.
@@ -148,6 +148,12 @@ def filter_and_remove_env_var(ctx, releaser, envar_model, envar_name, \
     -envar_value:
     Posible values to use to filter. Could be a list or empty.
     """
+    processed_filtering_params = filtering_params.split(':')
+    if len(processed_filtering_params) == 3:
+        envar_model, service_name, envar_name = processed_filtering_params
+    else:
+        envar_model, envar_name = processed_filtering_params
+        service_name = ''
 
     try:
         devices = releaser.get_devices_filtered_by_condition(
