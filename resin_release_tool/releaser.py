@@ -54,7 +54,7 @@ class BalenaReleaser:
         base_model_method = self.models.environment_variables
         model_method = getattr(
             base_model_method,
-            f'{self.get_envar_model_name(envar_model)}')
+            self.get_envar_model_name(envar_model))
         return model_method
 
     #To date, this doesnt filter by service name at any service level!
