@@ -163,12 +163,15 @@ def filter_and_remove_env_var(ctx, releaser, filtering_params,\
     -envar_value:
     Posible values to use to filter. Could be a list or empty.
     """
+
     processed_filtering_params = filtering_params.split(':')
     if len(processed_filtering_params) == 3:
         envar_model, service_name, envar_name = processed_filtering_params
-    else:
+    elif len(processed_filtering_params) == 2:
         envar_model, envar_name = processed_filtering_params
         service_name = ''
+    else:
+        raise ValueError(f'The parameters for filtering are not correct')
 
     try:
         devices = (device['device'] for device \
