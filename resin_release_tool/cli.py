@@ -171,17 +171,19 @@ def filter_and_remove_env_var(ctx, releaser, filtering_params,\
         service_name = ''
 
     try:
-        devices = releaser.get_devices_filtered_by_condition(
-            envar_model, envar_name, envar_value, exclusive)
+        devices = (device['device'] for device \
+                   in releaser.get_devices_and_envar_id_filtered_by_condition(
+                       envar_model, envar_name, envar_value, service_name,\
+                       inclusive))
     except ValueError as exception:
         click.echo(exception)
         exit(2)
     ctx.invoke(info)
     click.echo('Devices to be modified:')
 
-    list_devices = list(devices.values())
+    list_devices = list(devices)
     list_devices_len = len(list_devices)
-    list_devices_info = ', '.join([c['uuid'][:6] for c in list_devices[:10]])
+    list_devices_info = ', '.join([uuid[:6] for uuid in list_devices[:10]])
     if list_devices_len > 10:
         list_devices_info += f'... and {list_devices_len-10} more'
     click.echo(f'uuids: {list_devices_info}')
@@ -193,7 +195,7 @@ def filter_and_remove_env_var(ctx, releaser, filtering_params,\
         click.echo('Cancelled!')
         exit(1)
     results = releaser.remove_from_environment_model_by_values(
-        envar_model, envar_name, envar_value, exclusive)
+        envar_model, envar_name, envar_value, service_name, inclusive)
     click.echo(results)
 
 if __name__ == '__main__':
