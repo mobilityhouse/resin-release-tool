@@ -142,7 +142,22 @@ def filter_and_remove_env_var(ctx, releaser, filtering_params,\
     nor device_service envar_model and 'envar_model:service_name:envar_name'
     for service envar filtering.
 
-    -envar_name:
+
+    envar_model:
+
+        >   Application: app
+
+        >   Service: service
+
+        >   Device Application: devices
+
+        >   Device Service: device_service
+
+    service_name:
+    Only required when envar_model is service or device_service. Is the name
+    of the service that contains the requested envar.
+)
+    envar_name:
     Name of the environment variable to remove.
 
     -envar_value:
