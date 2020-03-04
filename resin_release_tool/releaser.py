@@ -57,102 +57,180 @@ class BalenaReleaser:
             self.get_envar_model_name(envar_model))
         return model_method
 
-    #To date, this doesnt filter by service name at any service level!
-    def get_devices_filtered_by_condition(
-            self, env_model, envar_name, envar_values, inclusive=False):
-        if self.is_application_level_environment_model(env_model):
-            devices = self._get_devices_by_envar_value_app_level(
-                env_model, envar_name, envar_values, inclusive)
-        elif self.is_device_level_environment_model(env_model):
-            devices = self._get_devices_by_envar_value_device_level(
-                env_model, envar_name, envar_values, inclusive)
-        return devices
+    def get_devices_and_envar_id_filtered_by_condition(
+            self, env_model, envar_name, envar_values, \
+            service_name='', inclusive=True):
 
-    def _get_devices_by_envar_value_app_level(
-            self, env_model, envar_name, envar_values, inclusive=False):
-        devices = ''
-        envar_exists = False
-        envars = self.get_envars_info_by_environment_model(
-            env_model)
-        if envar_name in envars.keys():
-            if (envars[envar_name]['value'] in envar_values)\
-                    == inclusive:
-                devices = self.get_all_devices()
-        if not envar_exists:
+        if self.is_application_level_environment_model(env_model):
+            devices_with_envar_id = self._get_devices_and_envar_id_by_envar_value_app_level(
+                env_model, envar_name, envar_values, service_name, inclusive)
+
+        elif self.is_device_level_environment_model(env_model):
+            devices_with_envar_id = self._get_devices_and_envar_id_by_envar_value_device_level(
+                env_model, envar_name, envar_values, service_name, inclusive)
+        return devices_with_envar_id
+
+    def _get_devices_and_envar_id_by_envar_value_app_level(
+            self, env_model, envar_name, envar_values,\
+            service_name='', inclusive=True):
+        devices = {}
+        envars_by_model = self.get_envars_info_by_environment_model(env_model)
+        envars = {envar['id']:{
+            'name':envar['name'],
+            'value':envar['value'],
+        } for envar in envars_by_model.values()}
+
+        envar_names = [envar['name'] for envar in envars.values()]
+
+        if not envar_name in envar_names:
             raise ValueError(
                 f'The variable {envar_name} does not exist in none of the devices.')
+
+        if self.get_envar_model_name(env_model) ==\
+                'service_environment_variable':
+
+            if not service_name:
+                raise ValueError(
+                    f'Service name parameter is required for this operation.')
+            services = {s['id']:s for s in self.models.service.\
+                        get_all_by_application(self.app_id)}
+            envar_on_service = False
+
+            for envar in envars:
+                envars_service_id = envars_by_model[envar]['service']['__id']
+                if services[envars_service_id]['service_name'] == service_name:
+                    envars = {envar:envars[envar]}
+                    envar_on_service = True
+                    break
+            if not envar_on_service:
+                raise ValueError(
+                    f'The environment variable does not exists on this service')
+
+        for envar in envars:
+            if envars[envar]['name'] == envar_name and\
+                    (envars[envar]['value'] in envar_values) == inclusive:
+                devices = [device['uuid'] for device in self.\
+                           get_all_devices().values()]
+
         if not devices:
             raise ValueError(
                 f'No environment variable matchs the condition.')
-        return devices
+        return {'devices': devices, 'envar_id': envar}
 
-    def _get_devices_by_envar_value_device_level(
-            self, env_model, envar_name, envar_values, inclusive=False):
+    def _get_devices_and_envar_id_by_envar_value_device_level(
+            self, env_model, envar_name, envar_values,\
+            service_name='', inclusive=True):
         devices_filtered = []
         envar_exists = False
+        envar_on_service = False
         devices = {d['id']:d for d in self.models.device.get_all()}
+
         for device in devices.values():
-            device_envars = self.get_envars_info_by_environment_model(
+            envars_by_model = self.get_envars_info_by_environment_model(
                 env_model, device)
-            if envar_name in device_envars.keys():
+            envars = {envar['id']:{
+                'name':envar['name'],
+                'value':envar['value'],
+            } for envar in envars_by_model.values()}
+            envar_names = [envar['name'] for envar in envars.values()]
+            if envar_name in envar_names:
                 envar_exists = True
-                device_envar_value = device_envars[envar_name]['value']
-                if (device_envar_value in envar_values) == inclusive:
-                    devices_filtered.append(device)
+
+            #If is device service environment, the filtering is different.
+            if self.get_envar_model_name(env_model) ==\
+                    'device_service_environment_variable':
+
+                if not service_name:
+                    raise ValueError(
+                        f'Service name parameter is required for this operation')
+
+                for envar in envars:
+                    envar_service_name = envars_by_model[envar]\
+                        ['service_install'].pop()\
+                        ['service'].pop()\
+                        ['service_name']
+
+                    if envar_service_name == service_name:
+                        envars = {envar:envars[envar]}
+                        envar_on_service = True
+                        break
+
+            for envar in envars:
+                if envars[envar]['name'] == envar_name and\
+                        (envars[envar]['value'] in envar_values) == inclusive:
+                    devices_filtered.append({
+                        'device': device['uuid'],
+                        'envar_id': envar,
+                    })
+
         if not envar_exists:
             raise ValueError(
                 f'The variable {envar_name} does not exist in none of the devices.')
+
+        if self.get_envar_model_name(env_model) == \
+                'device_service_environment_variable' and \
+                not envar_on_service:
+            raise ValueError(
+                f'The environment variable does not exists on this service')
+
         if not devices_filtered:
             raise ValueError(
                 f'No environment variable matchs the condition.')
-        return {d['id']: d for d in devices_filtered}
+
+
+        return devices_filtered
 
     def get_envars_info_by_environment_model(self, envar_model, device=''):
         envar_model_name = self.get_envar_model_name(envar_model)
         model_methods = self.get_model_methods_base(envar_model)
         self.validate_environment_model(envar_model)
+
         if self.is_application_level_environment_model(envar_model):
-            env_variables = model_methods.get_all(self.app_id)
+            if self.get_envar_model_name(envar_model) ==\
+                    'service_environment_variable':
+                env_variables = model_methods.get_all_by_application(self.app_id)
+            else: env_variables = model_methods.get_all(self.app_id)
+
         elif self.is_device_level_environment_model(envar_model) and device:
             env_variables = model_methods.get_all(device['uuid'])
+
         else:
             raise AttributeError(
                 f'A device is needed for this environment model variables info.')
-        return {env_variable['name']:env_variable \
+
+        return {env_variable['id']:env_variable \
                 for env_variable in env_variables}
 
     def remove_from_environment_model_by_values(
-            self, envar_model, envar_name, envar_values='', inclusive=False):
+            self, envar_model, envar_name, envar_values='',
+            service_name='', inclusive=True):
         self.validate_environment_model(envar_model)
         results = {}
-        devices = self.get_devices_filtered_by_condition(
-            envar_model, envar_name, envar_values, inclusive)
+        devices_with_envar_id = self.get_devices_and_envar_id_filtered_by_condition(
+            envar_model, envar_name, envar_values, service_name, inclusive)
+
         if self.is_device_level_environment_model(envar_model):
-            results = self._remove_envar_from_devices(
-                envar_model, envar_name, devices)
+            results = self._remove_envar_from_devices(envar_model, devices_with_envar_id)
         else:
-            envars = self.get_envars_info_by_environment_model(
-                envar_model)
             model_methods = self.get_model_methods_base(envar_model)
             try:
-                model_methods.remove(envars[envar_name]['id'])
+                model_methods.remove(devices_with_envar_id['envar_id'])
                 results = 'Success!'
             except BalenaException as exception:
                 results = f'Failed! {exception}'
         return results
 
-    def _remove_envar_from_devices(self, envar_model, envar_name, devices):
-        results = {'done':0, 'failed':0}
-        for device in devices.values():
-            envar_id = self.get_envars_info_by_environment_model(
-                envar_model, device)[envar_name]['id']
+    def _remove_envar_from_devices(self, envar_model, devices_with_envar_id):
+        results = {'Done':0, 'Failed':0}
+
+        for device in devices_with_envar_id:
             model_methods = self.get_model_methods_base(envar_model)
             try:
-                model_methods.remove(envar_id)
-                results['done'] += 1
+                model_methods.remove(device['envar_id'])
+                results['Done'] += 1
             except BalenaException:
-                results['failed'] += 1
-                results['failed_devices'][device['uuid']] = device
+                results['Failed'] += 1
+                results['Failed_Devices'] = device['uuid']
         return results
 
     @lru_cache()
