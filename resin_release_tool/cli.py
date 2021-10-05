@@ -8,9 +8,9 @@ pass_releaser = click.make_pass_decorator(BalenaReleaser)
 
 @click.group()
 @click.option('--token', required=True, envvar='RESIN_TOKEN',
-              metavar='TOKEN', help='Resin.io auth token')
+              metavar='TOKEN', help='balenaCloud auth token')
 @click.option('--app', required=True, envvar='RESIN_APP',
-              metavar='APP_ID', help='Resin App name')
+              metavar='APP_ID', help='balenaCloud app ID')
 @click.pass_context
 def cli(ctx, app, token):
     """You can set app and token as environment variables,
