@@ -60,49 +60,35 @@ def show_devices_status(releaser):
     """Show the status of the devices in the applications"""
 
     devices = releaser.get_devices_by_status()
-
-    canaries = ', '.join(
-        [c['uuid'][:6] for c in devices['canaries'].values()])
-    old_canaries = ', '.join(
-        [c['uuid'][:6] for c in devices['old_canaries'].values()])
-
-    rest = list(devices['rest'].values())
-    rest_len = len(rest)
-    rest_info = ', '.join([c['uuid'][:6] for c in rest[:10]])
-    if rest_len > 10:
-        rest_info += f'... and {rest_len-10} more'
-
-    click.echo(f'Canaries: {canaries}')
-    click.echo(f'Old Canaries: {old_canaries}')
-    click.echo(f'Rest of the Devices: {rest_info}')
+    for tag in devices:
+        tag_devices = ', '.join([c['uuid'][:6] for c in devices[tag].values()])
+        click.echo(f"{tag}: {tag_devices}")
 
 
 @cli.command()
+@click.argument('release_group')
 @click.argument('release_commit')
-@click.argument('canary_commit')
 @pass_releaser
 @click.pass_context
-def release(ctx, releaser, release_commit, canary_commit):
-    """Sets release and canary commits"""
+def release(ctx, releaser, release_group, release_commit):
+    """Sets release commits for a given release group"""
     if not releaser.is_valid_commit(release_commit):
         click.echo(f'Invalid release commit: {release_commit}')
         exit(2)
-    if not releaser.is_valid_commit(canary_commit):
-        click.echo('Invalid canary commit: {canary_commit}')
-        exit(2)
+    if not releaser.is_valid_release_group(release_group):
+        click.echo(f'Invalid release group: {release_group}')
+        exit(3)
 
     ctx.invoke(info)
     click.echo('Devices:')
     ctx.invoke(show_devices_status)
     click.echo()
 
-    confirm_text = 'Are you sure you want to set '\
-        'release/canary to: "%s" "%s"?' % (
-            release_commit, canary_commit)
+    confirm_text = f'Are you sure you want to set release group "{release_group}" to "{release_commit}"?'
     if not click.confirm(confirm_text):
         click.echo('Cancelled!')
         exit(1)
-    releaser.set_release(release_commit, canary_commit)
+    releaser.set_release(release_group, release_commit)
 
 
 @cli.command()
