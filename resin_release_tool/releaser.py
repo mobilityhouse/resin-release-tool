@@ -89,10 +89,6 @@ class BalenaReleaser:
         return dict(uuid_release_groups)
 
     def set_release(self, release_hash, release_group, app_wide=False):
-        # Disable rolling releases
-        print("Disabling rolling releases on the application")
-        self.disable_rolling()
-
         # TODO: This is a bit overly nested.
         if release_group:
             devices = self.get_devices_by_status()
@@ -106,5 +102,9 @@ class BalenaReleaser:
                     self.set_device_to_release(device, release_hash)
 
         if app_wide:
+            # Disable rolling releases
+            print("Disabling rolling releases on the application")
+            self.disable_rolling()
+
             print(f"Setting app release to {release_hash}")
             self.set_app_to_release(release_hash)
