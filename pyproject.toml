@@ -13,7 +13,7 @@ resin-release-tool = 'resin_release_tool.cli:cli'
 
 [tool.poetry.dependencies]
 python = "^3.5"
-balena-sdk = "^9.2.0"
+balena-sdk = "^11.0.0"
 click = "^6.7"
 
 [tool.poetry.dev-dependencies]
