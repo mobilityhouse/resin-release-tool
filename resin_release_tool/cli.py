@@ -103,6 +103,20 @@ def release(ctx, releaser, release_group, release_commit):
 
 
 @cli.command()
+@click.argument("release_group")
+@pass_releaser
+@click.pass_context
+def unpin(ctx, releaser, release_group):
+    """Unpins the version of a release group"""
+    if not releaser.is_valid_release_group(release_group):
+        click.echo(f"Invalid release group: {release_group}")
+        exit(3)
+
+    # Empty commit ID unpins devices
+    releaser.set_release(release_group, "")
+
+
+@cli.command()
 @click.option("--count", default=10, help="How many")
 @pass_releaser
 def releases(releaser, count):
