@@ -33,6 +33,7 @@ class BalenaReleaser:
             if release["status"] == "success"
         }
 
+    @lru_cache()
     def get_release_groups(self):
         tags = self.models.tag.device.get_all_by_application(self.app_id)
 
@@ -87,18 +88,23 @@ class BalenaReleaser:
 
         return dict(uuid_release_groups)
 
-    def set_release(self, release_group, release_hash):
-        devices = self.get_devices_by_status()
-
-        release_group_devices = devices[release_group]
-
+    def set_release(self, release_hash, release_group, app_wide=False):
         # Disable rolling releases
         print("Disabling rolling releases on the application")
         self.disable_rolling()
 
-        if release_group_devices:
-            print(f"Setting {release_group}")
-            # Set canaries to current canary release
-            for device in release_group_devices.values():
-                print(device["device_name"])
-                self.set_device_to_release(device, release_hash)
+        # TODO: This is a bit overly nested.
+        if release_group:
+            devices = self.get_devices_by_status()
+            release_group_devices = devices[release_group]
+
+            if release_group_devices:
+                print(f"Setting {release_group} release group to {release_hash}")
+                # Set canaries to current canary release
+                for device in release_group_devices.values():
+                    print(device["device_name"])
+                    self.set_device_to_release(device, release_hash)
+
+        if app_wide:
+            print(f"Setting app release to {release_hash}")
+            self.set_app_to_release(release_hash)
