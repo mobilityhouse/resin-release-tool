@@ -28,9 +28,10 @@ class BalenaReleaser:
     def get_releases(self):
         releases = self.models.release.get_all_by_application(self.app_id)
         return {
-            release['commit']: release
+            release["commit"]: release
             for release in releases
-            if release['status'] == 'success'}
+            if release["status"] == "success"
+        }
 
     def get_release_groups(self):
         tags = self.models.tag.device.get_all_by_application(self.app_id)
@@ -59,12 +60,12 @@ class BalenaReleaser:
         self.models.application.set_to_release(self.app_id, release)
 
     def set_device_to_release(self, device, release):
-        uuid = device['uuid']
+        uuid = device["uuid"]
         self.models.device.set_to_release(uuid, release)
 
     def get_all_devices(self):
         devices = self.models.device.get_all_by_application_id(self.app_id)
-        return {d['id']: d for d in devices}
+        return {d["id"]: d for d in devices}
 
     @lru_cache()
     def get_devices_by_status(self):
@@ -74,11 +75,14 @@ class BalenaReleaser:
         release_groups = self.get_release_groups()
         uuid_release_groups = defaultdict(list)
         for device_group in release_groups:
-            uuid_release_groups[device_group] = {device: all_devices[device] for device in release_groups[device_group]}
+            uuid_release_groups[device_group] = {
+                device: all_devices[device] for device in release_groups[device_group]
+            }
 
         uuid_release_groups[None] = {
-            device['id']: device for device in all_devices.values()
-            if device['id'] not in sum(release_groups.values(), [])
+            device["id"]: device
+            for device in all_devices.values()
+            if device["id"] not in sum(release_groups.values(), [])
         }
 
         return dict(uuid_release_groups)
@@ -89,12 +93,12 @@ class BalenaReleaser:
         release_group_devices = devices[release_group]
 
         # Disable rolling releases
-        print('Disabling rolling releases on the application')
+        print("Disabling rolling releases on the application")
         self.disable_rolling()
 
         if release_group_devices:
-            print(f'Setting {release_group}')
+            print(f"Setting {release_group}")
             # Set canaries to current canary release
             for device in release_group_devices.values():
-                print(device['device_name'])
+                print(device["device_name"])
                 self.set_device_to_release(device, release_hash)
