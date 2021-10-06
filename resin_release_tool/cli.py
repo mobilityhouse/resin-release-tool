@@ -117,17 +117,21 @@ def release(ctx, releaser, group, commit, app, yes):
 
 
 @cli.command()
-@click.argument("release_group")
+@click.argument("release_group", nargs=-1)
+@click.option("--nocheck", is_flag=True, help="Don't check if the release group exists")
 @pass_releaser
 @click.pass_context
-def unpin(ctx, releaser, release_group):
-    """Unpins the version of a release group"""
-    if not releaser.is_valid_release_group(release_group):
-        click.echo(f"Invalid release group: {release_group}")
-        exit(3)
+def unpin(ctx, releaser, release_group, nocheck):
+    """Unpins the version of one or more release groups"""
+    # Doing for loops separately so an exit doesn't happen midway
+    for group in release_group:
+        if not nocheck and not releaser.is_valid_release_group(group):
+            click.echo(f"Invalid release group: {group}")
+            exit(3)
 
-    # Empty commit ID unpins devices
-    releaser.set_release(None, release_group)
+    for group in release_group:
+        # Empty commit ID unpins devices
+        releaser.set_release(None, group)
 
 
 @cli.command()
