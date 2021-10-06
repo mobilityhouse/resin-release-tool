@@ -79,9 +79,10 @@ def show_devices_status(releaser):
 @cli.command()
 @click.argument("release_group")
 @click.argument("release_commit")
+@click.option("-y", is_flag=True)
 @pass_releaser
 @click.pass_context
-def release(ctx, releaser, release_group, release_commit):
+def release(ctx, releaser, release_group, release_commit, y):
     """Sets release commits for a given release group"""
     if not releaser.is_valid_commit(release_commit):
         click.echo(f"Invalid release commit: {release_commit}")
@@ -96,7 +97,7 @@ def release(ctx, releaser, release_group, release_commit):
     click.echo()
 
     confirm_text = f'Are you sure you want to set release group "{release_group}" to "{release_commit}"?'
-    if not click.confirm(confirm_text):
+    if not y and not click.confirm(confirm_text):
         click.echo("Cancelled!")
         exit(1)
     releaser.set_release(release_group, release_commit)
