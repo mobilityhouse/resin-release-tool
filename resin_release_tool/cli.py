@@ -77,18 +77,28 @@ def show_devices_status(releaser):
 
 
 @cli.command()
-@click.argument("release_group")
-@click.argument("release_commit")
-@click.option("-y", is_flag=True)
+@click.option("--group", "-g", help="Name of release group (needed if -a is not used)")
+@click.option("--commit", "-c", required=True)
+@click.option(
+    "--app",
+    "-a",
+    is_flag=True,
+    help="Flag to set the app-wide release (needed if -g is not used)",
+)
+@click.option("--yes", "-y", is_flag=True)
 @pass_releaser
 @click.pass_context
-def release(ctx, releaser, release_group, release_commit, y):
-    """Sets release commits for a given release group"""
-    if not releaser.is_valid_commit(release_commit):
-        click.echo(f"Invalid release commit: {release_commit}")
+def release(ctx, releaser, group, commit, app, yes):
+    """Sets release commits for a given release group or app"""
+    if not group and not app:
+        click.echo('Error: Missing option "--group" / "-g" or flag "--app" / "-a".')
+        exit(4)
+
+    if not releaser.is_valid_commit(commit):
+        click.echo(f"Invalid release commit: {commit}")
         exit(2)
-    if not releaser.is_valid_release_group(release_group):
-        click.echo(f"Invalid release group: {release_group}")
+    if group and not releaser.is_valid_release_group(group):
+        click.echo(f"Invalid release group: {group}")
         exit(3)
 
     ctx.invoke(info)
@@ -96,11 +106,14 @@ def release(ctx, releaser, release_group, release_commit, y):
     ctx.invoke(show_devices_status)
     click.echo()
 
-    confirm_text = f'Are you sure you want to set release group "{release_group}" to "{release_commit}"?'
-    if not y and not click.confirm(confirm_text):
+    # TODO: this doesn't account for both -a and -g being set
+    group_name = f'release group "{group}"' if group else "app"
+
+    confirm_text = f'Are you sure you want to set {group_name} to "{commit}"?'
+    if not yes and not click.confirm(confirm_text):
         click.echo("Cancelled!")
         exit(1)
-    releaser.set_release(release_group, release_commit)
+    releaser.set_release(commit, group, app)
 
 
 @cli.command()
@@ -114,7 +127,7 @@ def unpin(ctx, releaser, release_group):
         exit(3)
 
     # Empty commit ID unpins devices
-    releaser.set_release(release_group, "")
+    releaser.set_release(None, release_group)
 
 
 @cli.command()
