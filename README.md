@@ -72,5 +72,6 @@ Commands:
   release              Sets release commits for a given release or app
   releases             Show successful releases of the application
   show_devices_status  Show the status of the devices in the app
+  show_group_versions  Show the release versions of the devices in release groups
   unpin                Unpins the version of one or more releases
 ```
