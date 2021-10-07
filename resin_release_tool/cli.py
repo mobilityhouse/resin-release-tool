@@ -57,11 +57,11 @@ def disable_rolling(releaser):
 @pass_releaser
 def enable_rolling(releaser):
     """Enables rolling releases in the application"""
-    releaser.enable_rolling()
     releases = list(releaser.get_releases().values())
     if releases:
-        commit = releases[0]["commit"]
+        commit = releases[-1]["commit"]
         releaser.set_app_to_release(commit)
+    releaser.enable_rolling()
     click.echo("Enabled rolling")
 
 
