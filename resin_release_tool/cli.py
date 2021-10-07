@@ -85,10 +85,11 @@ def show_devices_status(releaser):
     is_flag=True,
     help="Flag to set the app-wide release (needed if -g is not used)",
 )
-@click.option("--yes", "-y", is_flag=True)
+@click.option("--yes", "-y", is_flag=True, help="Don't ask for confirmation")
+@click.option("--silent", is_flag=True, help="Don't show info or status before setting release")
 @pass_releaser
 @click.pass_context
-def release(ctx, releaser, group, commit, app, yes):
+def release(ctx, releaser, group, commit, app, yes, silent):
     """Sets release commits for a given release group or app"""
     if not group and not app:
         click.echo('Error: Missing option "--group" / "-g" or flag "--app" / "-a".')
@@ -101,10 +102,11 @@ def release(ctx, releaser, group, commit, app, yes):
         click.echo(f"Invalid release group: {group}")
         exit(3)
 
-    ctx.invoke(info)
-    click.echo("Devices:")
-    ctx.invoke(show_devices_status)
-    click.echo()
+    if not silent:
+        ctx.invoke(info)
+        click.echo("Devices:")
+        ctx.invoke(show_devices_status)
+        click.echo()
 
     # TODO: this doesn't account for both -a and -g being set
     group_name = f'release group "{group}"' if group else "app"
