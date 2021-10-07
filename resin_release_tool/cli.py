@@ -101,7 +101,9 @@ def show_group_versions(releaser):
     help="Flag to set the app-wide release (needed if -g is not used)",
 )
 @click.option("--yes", "-y", is_flag=True, help="Don't ask for confirmation")
-@click.option("--silent", is_flag=True, help="Don't show info or status before setting release")
+@click.option(
+    "--silent", is_flag=True, help="Don't show info or status before setting release"
+)
 @pass_releaser
 @click.pass_context
 def release(ctx, releaser, group, commit, app, yes, silent):
