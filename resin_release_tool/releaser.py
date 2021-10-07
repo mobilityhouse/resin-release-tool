@@ -74,7 +74,7 @@ class BalenaReleaser:
         Devices without one will be under key None."""
         all_devices = self.get_all_devices()
         release_groups = self.get_release_groups()
-        uuid_release_groups = defaultdict(list)
+        uuid_release_groups = {}
         for device_group in release_groups:
             uuid_release_groups[device_group] = {
                 device: all_devices[device] for device in release_groups[device_group]
