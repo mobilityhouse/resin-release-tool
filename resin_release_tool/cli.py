@@ -77,6 +77,18 @@ def show_devices_status(releaser):
 
 
 @cli.command()
+@pass_releaser
+def show_group_versions(releaser):
+    """Show the release versions of the devices in release groups"""
+
+    devices = releaser.get_devices_by_status()
+    for tag in devices:
+        release_versions = [c["is_on__commit"][:7] for c in devices[tag].values()]
+        tag_devices = ", ".join(set(release_versions))
+        click.echo(f"{tag}: {tag_devices}")
+
+
+@cli.command()
 @click.option("--group", "-g", help="Name of release group (needed if -a is not used)")
 @click.option("--commit", "-c", required=True)
 @click.option(
