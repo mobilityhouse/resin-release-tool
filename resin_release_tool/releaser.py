@@ -1,4 +1,6 @@
 from functools import lru_cache
+from typing import Callable
+
 import click
 from balena import Balena, Settings
 from resin_release_tool.balena_backend import BalenaBackend
@@ -153,3 +155,20 @@ check also 'pine_endpoint' there'\n"
 
             print(f"Setting app release to {release_hash}")
             self.set_app_to_release(release_hash)
+
+    def show_group_versions(self, output: Callable = click.echo):
+        devices = self.get_devices_by_status()
+        for tag in devices:
+            release_ids = [
+                c["is_running__release"]["__id"] for c in devices[tag].values()
+            ]
+
+            release_versions = [
+                self.balena_backend.get_release_by_id(_id)["commit"][:7]
+                for _id in release_ids
+            ]
+            if not release_versions:
+                continue
+
+            tag_devices = ", ".join(set(release_versions))
+            output(f"{tag}: {tag_devices}")

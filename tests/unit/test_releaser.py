@@ -1,4 +1,6 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
+
+import resin_release_tool.cli
 from resin_release_tool.releaser import BalenaReleaser
 from resin_release_tool.balena_backend import BalenaBackend
 import pytest
@@ -32,6 +34,15 @@ def balena_release():
     return {
         "commit": "2727adf02f82035cd32b26749db274f5",
     }
+
+
+def make_device(**kwargs):
+    """fixture factory for mocking a device
+    for current tests we only need the fields below and we can add more as needed
+    """
+    device_data = {"id": 5883496, "is_running__release": {"__id": 1234}}
+    device_data.update(kwargs)
+    return device_data
 
 
 @pytest.fixture
@@ -77,3 +88,32 @@ def test_get_info(mock_balena_backend):
         "In Commit: 2727adf02f82035cd32b26749db274f5",
         "Rolling enabled: No",
     ]
+
+
+@pytest.fixture
+def echo():
+    """test double for asserting on the lines that would get send to click.echo"""
+
+    class _echo:
+        lines = []
+
+        def __call__(self, line):
+            self.lines.append(line)
+
+    return _echo()
+
+
+def test_show_group_versions(mock_balena_backend, echo):
+    releaser = BalenaReleaser(
+        token="fake_token", app_id="123", balena_backend=mock_balena_backend
+    )
+    mock = Mock()
+    mock.return_value = {
+        None: {123: make_device(id=123)},
+        "group_two": {124: make_device(id=124)},
+    }
+    releaser.get_devices_by_status = mock
+
+    releaser.show_group_versions(output=echo)
+
+    assert echo.lines == ["None: 2727adf", "group_two: 2727adf"]
