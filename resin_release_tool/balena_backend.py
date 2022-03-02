@@ -47,6 +47,10 @@ class BalenaBackend:
 
 
 class ResinResourceNotFound(exceptions.BalenaException):
+    """some API still refer to resin "resources" e.g.:  '/resin/device_type or /resin/release
+    use this Exception for request that might fail for these.
+    """
+
     def __init__(self, message):
         super(ResinResourceNotFound, self).__init__()
         self.message = "Resin resource not found {message}".format(message=message)

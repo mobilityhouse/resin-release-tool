@@ -14,7 +14,10 @@ class BalenaReleaser:
         self.balena = Balena()
         self.balena.auth.login_with_token(token)
 
+        # deprecated way to access the models
+        # for new functionality use balena_backend.models as this makes testing easier
         self.models = self.balena.models
+
         if balena_backend is None:
             balena_backend = BalenaBackend(
                 models=self.models, settings=self.balena.settings
