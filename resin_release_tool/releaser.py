@@ -8,7 +8,9 @@ from collections import defaultdict
 
 
 class BalenaReleaser:
-    def __init__(self, token, app_id, balena_backend=None):
+    def __init__(
+        self, token, app_id, balena_backend=None, output: Callable = click.echo
+    ):
         self.balena = Balena()
         self.balena.auth.login_with_token(token)
 
@@ -18,9 +20,10 @@ class BalenaReleaser:
                 models=self.models, settings=self.balena.settings
             )
         self.balena_backend = balena_backend
-        self._check_sdk_version()
-
+        self.echo = output
         self.app_id = app_id
+
+        self._check_sdk_version()
 
     def _check_sdk_version(self):
         """The Balena sdk creates on installation a config file which sets the version to use for this user"""
@@ -32,18 +35,21 @@ class BalenaReleaser:
                 or default_version != BalenaBackend.SUPPORTED_API_VERSION
             ):
                 msg = f"Warning: \
-Your configured api version in $HOME/.balena/balena.cfg is: '{configured_version}'\n\
-balena sdk default is: '{default_version}'\n\
-supported version is: '{BalenaBackend.SUPPORTED_API_VERSION}'\n\
-check also 'pine_endpoint' there'\n"
+Your configured api version in $HOME/.balena/balena.cfg is: '{configured_version}' \
+The balena sdk default is: '{default_version}'. The supported version is: '{BalenaBackend.SUPPORTED_API_VERSION}'.  \
+Check also 'pine_endpoint' there\n"
                 self._print_notice(msg)
         except Exception as e:
             self._print_notice(f"\nERROR check settings versions: {e}\n")
 
     def _print_notice(self, message):
-        click.echo(f"\n\n****************************")
-        click.echo(message)
-        click.echo(f"****************************\n\n")
+        self.echo(
+            click.wrap_text(
+                "****************************\n"
+                + message
+                + "****************************\n"
+            )
+        )
 
     def get_info(self):
         fleet_info = self.balena_backend.get_application_info(self.app_id)

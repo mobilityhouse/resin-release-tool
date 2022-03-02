@@ -117,3 +117,57 @@ def test_show_group_versions(mock_balena_backend, echo):
     releaser.show_group_versions(output=echo)
 
     assert echo.lines == ["None: 2727adf", "group_two: 2727adf"]
+
+
+def test_check_sdk_version(echo):
+    releaser = BalenaReleaser(
+        token="fake_token",
+        app_id="123",
+        balena_backend=mock_balena_backend,
+        output=echo,
+    )
+
+    releaser.balena.settings = {"api_version": BalenaBackend.SUPPORTED_API_VERSION}
+    releaser._check_sdk_version()
+
+    assert echo.lines == []
+
+
+def test_check_sdk_version_should_warn_for_outdated_api_in_balena_settings_config(echo):
+    releaser = BalenaReleaser(
+        token="fake_token",
+        app_id="123",
+        balena_backend=mock_balena_backend,
+        output=echo,
+    )
+
+    releaser.balena.settings = {"api_version": "v5"}
+
+    releaser._check_sdk_version()
+
+    assert (
+        "Warning: Your configured api version in $HOME/.balena/balena.cfg is: 'v5'\n"
+        in ("").join(echo.lines)
+    )
+    assert "balena sdk default is: 'v6'\n" in ("").join(echo.lines)
+    assert "supported version is: 'v6'\n" in ("").join(echo.lines)
+
+
+def test_check_sdk_version_should_warn_for_outdated_api_in_balena_settings_config(echo):
+    releaser = BalenaReleaser(
+        token="fake_token",
+        app_id="123",
+        balena_backend=mock_balena_backend,
+        output=echo,
+    )
+
+    releaser.balena.settings = {"api_version": "v5"}
+
+    releaser._check_sdk_version()
+
+    assert (
+        "Warning: Your configured api version in $HOME/.balena/balena.cfg is: 'v5'"
+        in ("").join(echo.lines).replace("\n", " ")
+    )
+    assert "balena sdk default is: 'v6'" in ("").join(echo.lines).replace("\n", " ")
+    assert "supported version is: 'v6'" in ("").join(echo.lines).replace("\n", " ")
