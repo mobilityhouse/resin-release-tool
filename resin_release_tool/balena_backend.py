@@ -43,14 +43,10 @@ class BalenaBackend:
             ), f"getting device type by id should return one type {response[d]}"
             return response["d"][0]
         else:
-            raise ResinResourceNotFound(f"{resource} {params}")
+            raise ResourceNotFound(f"{resource} {params}")
 
 
-class ResinResourceNotFound(exceptions.BalenaException):
-    """some API still refer to resin "resources" e.g.:  '/resin/device_type or /resin/release
-    use this Exception for request that might fail for these.
-    """
-
+class ResourceNotFound(exceptions.BalenaException):
     def __init__(self, message):
-        super(ResinResourceNotFound, self).__init__()
-        self.message = "Resin resource not found {message}".format(message=message)
+        super(ResourceNotFound, self).__init__()
+        self.message = "Resource not found: {message}".format(message=message)
