@@ -1,19 +1,75 @@
 from functools import lru_cache
-from balena import Balena
+from typing import Callable
+
+import click
+from balena import Balena, Settings
+from resin_release_tool.balena_backend import BalenaBackend
 from collections import defaultdict
 
 
 class BalenaReleaser:
-    def __init__(self, token, app_id):
+    def __init__(
+        self, token, app_id, balena_backend=None, output: Callable = click.echo
+    ):
         self.balena = Balena()
         self.balena.auth.login_with_token(token)
 
+        # deprecated way to access the models
+        # for new functionality use balena_backend.models as this makes testing easier
         self.models = self.balena.models
 
+        if balena_backend is None:
+            balena_backend = BalenaBackend(
+                models=self.models, settings=self.balena.settings
+            )
+        self.balena_backend = balena_backend
+        self.echo = output
         self.app_id = app_id
 
+        self._check_sdk_version()
+
+    def _check_sdk_version(self):
+        """The Balena sdk creates on installation a config file which sets the version to use for this user"""
+        try:
+            configured_version = self.balena.settings.get("api_version")
+            default_version = Settings._setting.get("api_version")
+            if (
+                configured_version != BalenaBackend.SUPPORTED_API_VERSION
+                or default_version != BalenaBackend.SUPPORTED_API_VERSION
+            ):
+                msg = f"Warning: \
+Your configured api version in $HOME/.balena/balena.cfg is: '{configured_version}' \
+The balena sdk default is: '{default_version}'. The supported version is: '{BalenaBackend.SUPPORTED_API_VERSION}'.  \
+Check also 'pine_endpoint' there\n"
+                self._print_notice(msg)
+        except Exception as e:
+            self._print_notice(f"\nERROR check settings versions: {e}\n")
+
+    def _print_notice(self, message):
+        self.echo(
+            click.wrap_text(
+                "****************************\n"
+                + message
+                + "****************************\n"
+            )
+        )
+
     def get_info(self):
-        return self.models.application.get_by_id(self.app_id)
+        fleet_info = self.balena_backend.get_application_info(self.app_id)
+        device_type = self.balena_backend.get_device_type_by_id(
+            fleet_info.get("is_for__device_type").get("__id")
+        )
+        release = self.balena_backend.get_release_by_id(
+            fleet_info.get("should_be_running__release").get("__id")
+        )
+        rolling = fleet_info["should_track_latest_release"] and "Yes" or "No"
+        info_list = [
+            f"Fleet Name: {fleet_info['app_name']}",
+            f"Device Type: {device_type.get('name')}",
+            f"In Commit: {release.get('commit')}",
+            f"Rolling enabled: {rolling}",
+        ]
+        return info_list
 
     def get_release_group(self, release_group):
         tags = self.models.tag.device.get_all_by_application(self.app_id)
@@ -108,3 +164,20 @@ class BalenaReleaser:
 
             print(f"Setting app release to {release_hash}")
             self.set_app_to_release(release_hash)
+
+    def show_group_versions(self, output: Callable = click.echo):
+        devices = self.get_devices_by_status()
+        for tag in devices:
+            release_ids = [
+                c["is_running__release"]["__id"] for c in devices[tag].values()
+            ]
+
+            release_versions = [
+                self.balena_backend.get_release_by_id(_id)["commit"][:7]
+                for _id in release_ids
+            ]
+            if not release_versions:
+                continue
+
+            tag_devices = ", ".join(set(release_versions))
+            output(f"{tag}: {tag_devices}")

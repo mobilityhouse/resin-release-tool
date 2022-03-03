@@ -1,6 +1,5 @@
 import click
-from .releaser import BalenaReleaser
-
+from resin_release_tool.releaser import BalenaReleaser
 
 # get releaser object from the context
 pass_releaser = click.make_pass_decorator(BalenaReleaser)
@@ -33,16 +32,7 @@ def cli(ctx, app, token):
 @pass_releaser
 def info(releaser):
     """Information of the application"""
-
-    info = releaser.get_info()
-    rolling = info["should_track_latest_release"] and "Yes" or "No"
-    info_list = [
-        f"App Name: {info['app_name']}",
-        f"Device Type: {info['device_type']}",
-        f"In Commit: {info['commit']}",
-        f"Rolling enabled: {rolling}",
-    ]
-    click.echo("\n".join(info_list))
+    click.echo("\n".join(releaser.get_info()))
 
 
 @cli.command()
@@ -80,15 +70,7 @@ def show_devices_status(releaser):
 @pass_releaser
 def show_group_versions(releaser):
     """Show the release versions of the devices in release groups"""
-
-    devices = releaser.get_devices_by_status()
-    for tag in devices:
-        release_versions = [c["is_on__commit"][:7] for c in devices[tag].values()]
-        if not release_versions:
-            continue
-
-        tag_devices = ", ".join(set(release_versions))
-        click.echo(f"{tag}: {tag_devices}")
+    releaser.show_group_versions()
 
 
 @cli.command()

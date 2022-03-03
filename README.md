@@ -75,3 +75,19 @@ Commands:
   show_group_versions  Show the release versions of the devices in release groups
   unpin                Unpins the version of one or more releases
 ```
+
+# Development
+
+* The config file used by the balena_sdk is located at `$HOME/.balena/balena.cfg` 
+
+To format the code run:  
+
+    black <path to files >
+
+
+Tests can be run with 
+
+    poetry run pytests
+
+
+To debug/run commands in pycharm configure `resin_release_tool/cli.py` as the script path and the command you want to  run as parameter (credentials can be added as envs)
