@@ -91,3 +91,18 @@ Tests can be run with
 
 
 To debug/run commands in pycharm configure `resin_release_tool/cli.py` as the script path and the command you want to  run as parameter (credentials can be added as envs)
+
+## Publishing a new version
+### Pre-release steps
+
+* upddate the changelog and run
+    ```bash
+    make release <version>  # e.g. 0.3.1
+    ```
+    to update the version in `pyproject.toml`
+
+### Release step
+* After merging these changes, tag the commit on master using `git tag <version>`. This must match the new version in the `pyprojct.toml`
+* push the new tag to Github `git push origin <version>` this should trigger the `publish-to-pypi` workflow
+
+New versions are uploaded to https://pypi.org/project/resin-release-tool/
