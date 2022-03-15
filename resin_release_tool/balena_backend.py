@@ -40,7 +40,7 @@ class BalenaBackend:
         if response["d"]:
             assert (
                 len(response["d"]) == 1
-            ), f"getting device type by id should return one type {response[d]}"
+            ), f"getting device type by id should return one type {response['d']}"
             return response["d"][0]
         else:
             raise ResourceNotFound(f"{resource} {params}")
