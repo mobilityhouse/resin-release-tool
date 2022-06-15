@@ -97,7 +97,7 @@ To debug/run commands in pycharm configure `resin_release_tool/cli.py` as the sc
 
 * upddate the changelog and run
     ```bash
-    make release <version>  # e.g. 0.3.1
+    make release <version>  # e.g. v0.3.1
     ```
     to update the version in `pyproject.toml`
 
