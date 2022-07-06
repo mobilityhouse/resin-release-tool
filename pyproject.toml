@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "resin-release-tool"
-version = "0.2.0"
+version = "v0.3.0"
 readme = "README.md"
 description = "Release tool to have canary in resin.io"
 homepage = "https://github.com/mobilityhouse/resin-release-tool"
@@ -19,3 +19,5 @@ click = "^8.0.0"
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.1"
 black = "^22.1.0"
+flake8 = "^4.0.1"
+pytest-cov = "^3.0.0"

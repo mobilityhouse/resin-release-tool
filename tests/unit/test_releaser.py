@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock, Mock
 
-import resin_release_tool.cli
 from resin_release_tool.releaser import BalenaReleaser
 from resin_release_tool.balena_backend import BalenaBackend
 import pytest
