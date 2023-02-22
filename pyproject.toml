@@ -12,7 +12,7 @@ license = "MIT"
 resin-release-tool = 'resin_release_tool.cli:cli'
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.9"
 balena-sdk = "^12.5.0"
 click = "^8.0.0"
 
