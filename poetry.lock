@@ -30,7 +30,7 @@ visualize = ["Twisted (>=16.1.1)", "graphviz (>0.5.1)"]
 
 [[package]]
 name = "balena-sdk"
-version = "11.11.3"
+version = "12.5.0"
 description = "Balena SDK for Python"
 category = "main"
 optional = false
@@ -598,7 +598,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "e57b2869ef63872ef1ddac5c633afe097db30992f22bbbdb988044a030c79916"
+content-hash = "1a1ce04320dbdbbe42ade6cce71c57ce023392e64742708d5321dbd5006b93d1"
 
 [metadata.files]
 attrs = [
@@ -610,7 +610,7 @@ automat = [
     {file = "Automat-22.10.0.tar.gz", hash = "sha256:e56beb84edad19dcc11d30e8d9b895f75deeb5ef5e96b84a467066b3b84bb04e"},
 ]
 balena-sdk = [
-    {file = "balena-sdk-11.11.3.tar.gz", hash = "sha256:0319ab1d75e7086f4da8ad99df5c8054ac819351c5645c7052075846d6381b78"},
+    {file = "balena-sdk-12.5.0.tar.gz", hash = "sha256:15215fe6eba20c5a8d0a8ba8c0ff449d4456058c6c8943518cd40c3c5ff50b1f"},
 ]
 black = [
     {file = "black-22.12.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9eedd20838bd5d75b80c9f5487dbcb06836a43833a37846cf1d8c1cc01cef59d"},
