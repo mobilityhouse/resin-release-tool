@@ -1,6 +1,10 @@
 # Change log
 
+## v0.3.2 (2023-03-09)
+* fix github release workflow
+
 ## v0.3.1 (2023-03-07)
+* bump minimum Python version to 3.9
 * update dependencies
 
 ## v0.3.0 (2022-06-09)
