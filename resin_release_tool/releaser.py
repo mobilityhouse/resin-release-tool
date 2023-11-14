@@ -76,7 +76,8 @@ Check also 'pine_endpoint' there\n"
         release_group_devices = [
             tag["device"]["__id"]
             for tag in tags
-            if tag["tag_key"] == "release_group" and tag["value"] == release_group
+            if tag["tag_key"] == "release_group"
+            and release_group in tag["value"].split(",")
         ]
         return release_group_devices
 
@@ -97,7 +98,8 @@ Check also 'pine_endpoint' there\n"
         for tag in tags:
             if tag["tag_key"] != "release_group":
                 continue
-            release_groups[tag["value"]].append(tag["device"]["__id"])
+            for release_group in tag["value"].split(","):
+                release_groups[release_group].append(tag["device"]["__id"])
 
         return dict(release_groups)
 

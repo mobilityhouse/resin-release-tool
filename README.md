@@ -38,7 +38,7 @@ resin-release-tool --app $APP_ID unpin canary
 
 ### Staggered release with multiple groups
 
-Mark relevant devices with device tags with name "release_group" and value "release_group_1/2/3" on balenaCloud.
+Mark relevant devices with device tags with name `release_group` and value "release_group_1/2/3" on balenaCloud. If you want multiple release groups on one unit, you can do that by putting a comma between them in the `release_group` tag (for example: `canary,release_group_1`).
 
 **To deploy a commit to all devices in a staggered way:**
 
