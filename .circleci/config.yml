@@ -1,7 +1,26 @@
 version: 2.1
 orbs:
   python: circleci/python@2.0.3
-  tmh-blackduck: mobilityhouse/blackduck-runner-orb@1
+  sonarcloud: sonarsource/sonarcloud@4
+  git-shallow-clone: guitarrapc/git-shallow-clone@2.8.0
+
+executors:
+  node-executor:
+    docker:
+      - image: cimg/node:20.11
+    resource_class: medium
+    working_directory: ~/repo
+
+jobs:
+  sonarcloud_scan:
+    executor: node-executor
+    steps:
+      - git-shallow-clone/checkout_advanced:
+          clone_options: '--filter=blob:none'
+      - run:
+          name: "Git fetch"
+          command: git fetch --no-filter --refetch
+      - sonarcloud/scan
 
 aliases:
   - &base_blackduck_main
@@ -28,6 +47,14 @@ aliases:
 
 workflows:
   version: 2
+  sonarcloud:
+    jobs:
+      - sonarcloud_scan:
+          context:
+            - tmh
+            - tmh-eu
+            - sonarcloud
+            
   default:
     jobs:
       # manual blackduck runs for feature branches
