@@ -22,29 +22,6 @@ jobs:
           command: git fetch --no-filter --refetch
       - sonarcloud/scan
 
-aliases:
-  - &base_blackduck_main
-    name: "blackduck automatic"
-    context:
-      - blackduck-scanner
-    python-version: "3.10"
-    cli-parameters: '--detect.project.version.name=main'
-    filters:
-      branches:
-        only:
-          - master
-
-  - &base_blackduck_feature
-    <<: *base_blackduck_main
-    name: "blackduck feature-branch"
-    requires:
-      - approve_blackduck_run
-    cli-parameters: '--detect.project.version.name=feature-branch'
-    filters:
-      branches:
-        ignore:
-          - master
-
 workflows:
   version: 2
   sonarcloud:
@@ -54,21 +31,3 @@ workflows:
             - tmh
             - tmh-eu
             - sonarcloud
-            
-  default:
-    jobs:
-      # manual blackduck runs for feature branches
-      - approve_blackduck_run:
-          type: approval
-          filters:
-            branches:
-              ignore:
-                - development
-      - tmh-blackduck/run-scanner:
-          <<: *base_blackduck_feature
-          project-name: resin-release-tool
-
-      # automated blackduck runs for main development branch
-      - tmh-blackduck/run-scanner:
-          <<: *base_blackduck_main
-          project-name: resin-release-tool
